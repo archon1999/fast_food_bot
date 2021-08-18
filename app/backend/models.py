@@ -185,9 +185,9 @@ class Order(models.Model):
         max_length=20,
         choices=PaymentType.choices
     )
-    purchases = models.ManyToManyField(Purchase)
     longitude = models.FloatField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
+    purchases = models.ManyToManyField(Purchase)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

@@ -15,7 +15,8 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 APP_DIR_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, APP_DIR))
 sys.path.append(APP_DIR_PATH)
 
+print(sys.path)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 django.setup()
 
-TOKEN = '1851468121:AAEoSjivgcFbopw55msL69oftY1ZOVWVWko'
+TOKEN = '1474998034:AAHulxTecmIj9D-yrNdvfM9O8t4MrLUiwfY'

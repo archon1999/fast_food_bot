@@ -178,12 +178,23 @@ def product_page_call_handler(bot: telebot.TeleBot, call):
     product_image_path = get_product_image_path(product)
     keyboard = make_product_keyboard(category, page, lang)
     with open(product_image_path, 'rb') as photo:
-        bot.send_photo(
+        bot.edit_message_media(
+            media=types.InputMedia(
+                type='photo',
+                media=photo,
+                caption=product_info,
+                parse_mode='HTML'
+            ),
             chat_id=chat_id,
-            photo=photo,
-            caption=product_info,
+            message_id=call.message.id,
             reply_markup=keyboard,
         )
+        # bot.send_photo(
+        #     chat_id=chat_id,
+        #     photo=photo,
+        #     caption=product_info,
+        #     reply_markup=keyboard,
+        # )
 
 
 def get_product_info(product: Product, lang: str):
@@ -205,12 +216,12 @@ def make_product_keyboard(category: Category, page: int, lang: str):
     product = products[page]
     products_count = len(products)
     page_buttons = [
-        utils.make_inline_button(
-            text=Smiles.PREVIOUS_5.text,
-            CallType=CallTypes.ProductPage,
-            category_id=category.id,
-            page=(page-5+products_count) % products_count,
-        ),
+        # utils.make_inline_button(
+        #     text=Smiles.PREVIOUS_5.text,
+        #     CallType=CallTypes.ProductPage,
+        #     category_id=category.id,
+        #     page=(page-5+products_count) % products_count,
+        # ),
         utils.make_inline_button(
             text=Smiles.PREVIOUS.text,
             CallType=CallTypes.ProductPage,
@@ -227,12 +238,12 @@ def make_product_keyboard(category: Category, page: int, lang: str):
             category_id=category.id,
             page=(page+1) % products_count,
         ),
-        utils.make_inline_button(
-            text=Smiles.NEXT_5.text,
-            CallType=CallTypes.ProductPage,
-            category_id=category.id,
-            page=(page+5) % products_count,
-        ),
+        # utils.make_inline_button(
+        #     text=Smiles.NEXT_5.text,
+        #     CallType=CallTypes.ProductPage,
+        #     category_id=category.id,
+        #     page=(page+5) % products_count,
+        # ),
     ]
     add_to_shop_card_button = utils.make_inline_button(
         text=Keys.ADD_TO_SHOP_CARD.get(lang),
@@ -243,9 +254,13 @@ def make_product_keyboard(category: Category, page: int, lang: str):
         text=Keys.SHOP_CARD.get(lang),
         CallType=CallTypes.ShopCard,
     )
+    back_button = utils.make_inline_button(
+        text=Keys.BACK.get(lang),
+        CallType=CallTypes.Back,
+    )
 
     keyboard = types.InlineKeyboardMarkup(row_width=5)
     keyboard.add(*page_buttons)
     keyboard.add(add_to_shop_card_button)
-    keyboard.add(shop_card_button)
+    keyboard.add(shop_card_button, back_button)
     return keyboard

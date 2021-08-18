@@ -81,12 +81,13 @@ callback_query_handlers = {
 def callback_query_handler(call):
     call_type = CallTypes.parse_data(call.data)
     chat_id = call.message.chat.id
-    user = BotUser.objects.get(chat_id=chat_id)
-    if (state := user.bot_state):
-        if state == States.CHOOSE_DELIVERY_TYPE:
-            if call_type.__class__ == CallTypes.DeliveryType:
-                shopcard.delivery_type_call_handler(bot, call)
-        return
+    if BotUser.objects.filter(chat_id=chat_id).exists():
+        user = BotUser.objects.get(chat_id=chat_id)
+        if (state := user.bot_state):
+            if state == States.CHOOSE_DELIVERY_TYPE:
+                if call_type.__class__ == CallTypes.DeliveryType:
+                    shopcard.delivery_type_call_handler(bot, call)
+            return
 
     for CallType, query_handler in callback_query_handlers.items():
         if call_type.__class__ == CallType:

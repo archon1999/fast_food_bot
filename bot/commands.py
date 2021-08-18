@@ -1,3 +1,4 @@
+from datetime import date
 import config
 
 import telebot
@@ -67,6 +68,7 @@ def registration_start_handler(bot: telebot.TeleBot, message):
     )
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(contact_button)
+
     bot.send_message(chat_id, text,
                      reply_markup=keyboard)
 
@@ -106,7 +108,7 @@ def menu_command_handler(bot: telebot.TeleBot, message):
             CallType=CallTypes.Admin,
         )
         menu_keyboard.add(admin_button)
-
+    bot.delete_message(chat_id=chat_id, message_id=message.id)
     text = Messages.MENU.get(lang)
     if hasattr(message, 'edited'):
         bot.edit_message_text(

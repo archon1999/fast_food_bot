@@ -2,7 +2,6 @@
     "python.autoComplete.extraPaths": [
         "./app"
     ],
-    "python.pythonPath": "C:\\Users\\Nazarbek\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
     "python.analysis.extraPaths": [
         "./app"
     ],
