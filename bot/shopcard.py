@@ -330,7 +330,7 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         text = Messages.SEND_LOCATION.get(lang)
         user.bot_state = States.SEND_LOCATION
         user.save()
-
+        print(11)
         send_location_button = types.KeyboardButton(
             text=Keys.SEND_LOCATION.get(lang),
             request_location=True,
@@ -344,21 +344,19 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         bot.send_message(chat_id, text,
                          reply_markup=keyboard)
     else:
-        order = user.orders.filter(status=Order.Status.IN_QUEUE, delivery_type=Order.DeliveryType.SELF_CALL).first()
+        print(12)
+        ordering_finish(bot, user, call.message, delivery_type)
 
-        ordering_finish(bot, user, call.message)
-
-def ordering_finish(bot: telebot.TeleBot, user: BotUser, message):
+def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
+    order.delivery_type=delivery_type
     order.status = Order.Status.IN_QUEUE
     order.save()
+    print(order.delivery_type)
     user.bot_state = ''
     user.save()
     if order.DeliveryType.PAYMENT_DELIVERY == Order.DeliveryType.PAYMENT_DELIVERY:
-        orders = user.orders.filter()
-        print(orders)
-    
-        # purchases = orders.purchases.all()
+        print(1)
         text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
         bot.send_message(chat_id=user.chat_id, text=text)
         commands.menu_command_handler(bot=bot, message=message)
@@ -379,6 +377,9 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message):
                     chat_id=admins.chat_id,
                     text=text
                 )
-    else:
-        text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
-        bot.send_message(chat_id=user.chat_id, text=text)
+    # else:
+    #     order = user.orders.filter(status=Order.Status.RESERVED, delivery_type=Order.DeliveryType.SELF_CALL).first()
+    #     order.status = Order.Status.IN_QUEUE
+    #     order.save()
+    #     text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
+    #     bot.send_message(chat_id=user.chat_id, text=text)

@@ -135,13 +135,12 @@ def location_handler(message):
     if user.bot_state == States.SEND_LOCATION:
         longitude = message.location.longitude
         latitude = message.location.latitude
-        order = user.orders.filter(status=Order.Status.RESERVED, delivery_type=Order.DeliveryType.PAYMENT_DELIVERY).first()
-
+        order = user.orders.filter(status=Order.Status.RESERVED).first()
         order.longitude = longitude
         order.latitude = latitude
         order.save()
 
-        shopcard.ordering_finish(bot, user, message)
+        shopcard.ordering_finish(bot, user, message,delivery_type=Order.DeliveryType.PAYMENT_DELIVERY )
 
 
 if __name__ == "__main__":
