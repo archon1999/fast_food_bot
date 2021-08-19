@@ -124,7 +124,6 @@ def location_handler(message):
     chat_id = message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     if user.bot_state == States.SEND_LOCATION:
-        print(message.location.longitude)
         longitude = message.location.longitude
         latitude = message.location.latitude
         order = user.orders.filter(status=Order.Status.RESERVED).first()
