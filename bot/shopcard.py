@@ -344,14 +344,9 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         bot.send_message(chat_id, text,
                          reply_markup=keyboard)
     else:
+        order = user.orders.filter(status=Order.Status.IN_QUEUE, delivery_type=Order.DeliveryType.SELF_CALL).first()
+
         ordering_finish(bot, user, call.message)
-
-def get_orders_info(orders, lang):
-    for order in orders:
-        print(order.)
-    pass
-
-
 
 def ordering_finish(bot: telebot.TeleBot, user: BotUser, message):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
@@ -362,8 +357,7 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message):
     if order.DeliveryType.PAYMENT_DELIVERY == Order.DeliveryType.PAYMENT_DELIVERY:
         orders = user.orders.filter()
         print(orders)
-        for i in  orders:
-            print(order.purchases.product)
+    
         # purchases = orders.purchases.all()
         text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
         bot.send_message(chat_id=user.chat_id, text=text)
@@ -388,4 +382,3 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message):
     else:
         text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
         bot.send_message(chat_id=user.chat_id, text=text)
-        

@@ -81,7 +81,7 @@ callback_query_handlers = {
     CallTypes.PurchaseCount: shopcard.purchase_count_call_handler,
     CallTypes.PurchaseRemove: shopcard.purchase_remove_call_handler,
     CallTypes.PurchaseBuy: shopcard.purchase_buy_call_handler,
-    CallTypes.PurchaseBuy: shopcard.purchases_buy_call_handler,
+    CallTypes.PurchasesBuy: shopcard.purchases_buy_call_handler,
 
     CallTypes.Profile: profile.profile_call_handler,
 }
@@ -135,13 +135,12 @@ def location_handler(message):
     if user.bot_state == States.SEND_LOCATION:
         longitude = message.location.longitude
         latitude = message.location.latitude
-        order = user.orders.filter(status=Order.Status.RESERVED).first()
+        order = user.orders.filter(status=Order.Status.RESERVED, delivery_type=Order.DeliveryType.PAYMENT_DELIVERY).first()
 
         order.longitude = longitude
         order.latitude = latitude
-        order.DeliveryType = Order.DeliveryType.PAYMENT_DELIVERY
         order.save()
-        print(order.DeliveryType)
+
         shopcard.ordering_finish(bot, user, message)
 
 
