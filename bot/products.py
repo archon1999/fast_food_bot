@@ -4,7 +4,7 @@ import config
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Category, Product, Purchase, ShopCard
+from backend.models import BotUser, Category, Product
 from backend.templates import Messages, Keys, Smiles
 
 from bot import utils
@@ -145,19 +145,17 @@ def all_products_call_handler(bot: telebot.TeleBot, call):
 
 
 def add_to_shop_card_call_handler(bot: telebot.TeleBot, call):
-    call_type = CallTypes.parse_data(call.data)
-    product_id = call_type.product_id
-    product = Product.products.get(id=product_id)
-    purchase, _ = Purchase.purchases.get_or_create(product=product)
-    purchase.count += 1
-    purchase.save()
-
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     lang = user.lang
 
-    ShopCard.shop_cards.get_or_create(user=user)
-    user.shop_card.purchases.add(purchase)
+    call_type = CallTypes.parse_data(call.data)
+    product_id = call_type.product_id
+    product = Product.products.get(id=product_id)
+    purchase, _ = user.shop_card.purchases.get_or_create(product=product)
+    purchase.count += 1
+    purchase.save()
+
     text = Messages.ADDED_TO_SHOP_CARD.get(lang)
     bot.answer_callback_query(call.id, text=text, show_alert=True)
 

@@ -48,6 +48,7 @@ def language_call_handler(bot: telebot.TeleBot, call):
     user, success = BotUser.objects.get_or_create(chat_id=chat_id)
     user.lang = lang
     user.save()
+    ShopCard.shop_cards.get_or_create(user=user)
     if success:
         ShopCard.shop_cards.create(user=user)
         registration_start_handler(bot, call.message)
