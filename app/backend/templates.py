@@ -45,6 +45,8 @@ class Messages():
     CHOOSE_DELIVERY_TYPE = messages[15]
     PLEASE_SEND_LOCATION = messages[16]
     PROFILE_CALL_HANDLER = messages[17]
+    SUCCESFULL_ORDERING = messages[18]
+    NEW_ORDER = messages[19]
 
 
 class Smiles():

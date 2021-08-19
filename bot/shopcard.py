@@ -7,7 +7,7 @@ from telebot import types
 from backend.models import BotUser, Product, Order
 from backend.templates import Messages, Smiles, Keys
 
-from bot import utils
+from bot import utils, commands
 from bot.call_types import CallTypes
 from bot.states import States
 
@@ -99,11 +99,11 @@ def make_purchase_keyboard(user: BotUser, page):
     purchase = purchases[page]
     lang = user.lang
     page_buttons = [
-        utils.make_inline_button(
-            text=Smiles.PREVIOUS_5.text,
-            CallType=CallTypes.PurchasePage,
-            page=utils.normalize_page(page-5, purchases_count),
-        ),
+        # utils.make_inline_button(
+        #     text=Smiles.PREVIOUS_5.text,
+        #     CallType=CallTypes.PurchasePage,
+        #     page=utils.normalize_page(page-5, purchases_count),
+        # ),
         utils.make_inline_button(
             text=Smiles.PREVIOUS.text,
             CallType=CallTypes.PurchasePage,
@@ -118,28 +118,28 @@ def make_purchase_keyboard(user: BotUser, page):
             CallType=CallTypes.PurchasePage,
             page=utils.normalize_page(page+1, purchases_count),
         ),
-        utils.make_inline_button(
-            text=Smiles.NEXT_5.text,
-            CallType=CallTypes.PurchasePage,
-            page=utils.normalize_page(page+5, purchases_count),
-        ),
+        # utils.make_inline_button(
+        #     text=Smiles.NEXT_5.text,
+        #     CallType=CallTypes.PurchasePage,
+        #     page=utils.normalize_page(page+5, purchases_count),
+        # ),
     ]
     plus_minus_buttons = [
         utils.make_inline_button(
-            text=Smiles.ADD.text,
+            text=Smiles.SUBTRACT.text,
             CallType=CallTypes.PurchaseCount,
             page=page,
-            count=purchase.count+1,
+            count=purchase.count-1,
         ),
         utils.make_inline_button(
             text=str(purchase.count),
             CallType=CallTypes.Nothing,
         ),
         utils.make_inline_button(
-            text=Smiles.SUBTRACT.text,
+            text=Smiles.ADD.text,
             CallType=CallTypes.PurchaseCount,
             page=page,
-            count=purchase.count-1,
+            count=purchase.count+1,
         ),
     ]
 
@@ -200,7 +200,8 @@ def purchase_page_call_handler(bot: telebot.TeleBot, call):
     with open(image_path, 'rb') as photo:
         if call.message.content_type == 'photo':
             bot.edit_message_media(
-                media=types.InputMediaPhoto(
+                media=types.InputMedia(
+                    type='photo',
                     media=photo,
                     caption=product_info,
                     parse_mode='HTML',
@@ -290,6 +291,7 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases):
     text = Messages.CHOOSE_DELIVERY_TYPE.get(lang)
     bot.send_message(chat_id, text,
                      reply_markup=keyboard)
+    
 
 
 def purchase_buy_call_handler(bot: telebot.TeleBot, call):
@@ -318,6 +320,7 @@ def purchases_buy_call_handler(bot: telebot.TeleBot, call):
 def delivery_type_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
     delivery_type = call_type.delivery_type
+    print(delivery_type)
 
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
@@ -341,10 +344,48 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         bot.send_message(chat_id, text,
                          reply_markup=keyboard)
     else:
-        ordering_finish(bot, user)
+        ordering_finish(bot, user, call.message)
+
+def get_orders_info(orders, lang):
+    for order in orders:
+        print(order.)
+    pass
 
 
-def ordering_finish(bot: telebot.TeleBot, user: BotUser):
+
+def ordering_finish(bot: telebot.TeleBot, user: BotUser, message):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
     order.status = Order.Status.IN_QUEUE
     order.save()
+    user.bot_state = ''
+    user.save()
+    if order.DeliveryType.PAYMENT_DELIVERY == Order.DeliveryType.PAYMENT_DELIVERY:
+        orders = user.orders.filter()
+        print(orders)
+        for i in  orders:
+            print(order.purchases.product)
+        # purchases = orders.purchases.all()
+        text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
+        bot.send_message(chat_id=user.chat_id, text=text)
+        commands.menu_command_handler(bot=bot, message=message)
+        for admins in BotUser.objects.all():
+            if admins.type == BotUser.Type.ADMIN:
+                print(admins, admins.type, BotUser.Type.ADMIN, user.type)
+                # purchase = get_purchases_info(purchases, user.lang)
+                text = Messages.NEW_ORDER.get(user.lang).format(
+                    id=order.id,
+                    uid=user.chat_id, 
+                    user=user, 
+                    delivery_type=order.delivery_type,
+                    longitude=order.longitude,
+                    latitude=order.latitude,
+                    # purchases=purchase
+                )
+                bot.send_message(
+                    chat_id=admins.chat_id,
+                    text=text
+                )
+    else:
+        text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
+        bot.send_message(chat_id=user.chat_id, text=text)
+        

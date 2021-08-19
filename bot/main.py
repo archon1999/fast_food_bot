@@ -40,9 +40,17 @@ def message_handler(message):
                 bot.send_message(chat_id, text)
 
             if state == States.SEND_LOCATION:
-                lang = user.lang
-                text = Messages.PLEASE_SEND_LOCATION.get(lang)
-                bot.send_message(chat_id, text)
+                if message.text == Keys.CANCEL.get(user.lang):
+                    print(message.text)
+                    user.bot_state = ''
+                    user.save()
+                    commands.menu_command_handler(bot=bot, message=message)
+                    # msg = bot.send_message(chat_id=chat_id, text='bosh sahifa')
+                    # bot.register_next_step_handler(msg, shopcard.delivery_type_call_handler)
+                else:
+                    lang = user.lang
+                    text = Messages.PLEASE_SEND_LOCATION.get(lang)
+                    bot.send_message(chat_id, text)
 
             return
 
@@ -119,10 +127,11 @@ def contact_handler(message):
                          reply_markup=keyboard)
 
 
-@bot.message_handler(content_types=['location'])
+@bot.message_handler(content_types=['text', 'location'])
 def location_handler(message):
     chat_id = message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
+
     if user.bot_state == States.SEND_LOCATION:
         longitude = message.location.longitude
         latitude = message.location.latitude
@@ -130,8 +139,10 @@ def location_handler(message):
 
         order.longitude = longitude
         order.latitude = latitude
+        order.DeliveryType = Order.DeliveryType.PAYMENT_DELIVERY
         order.save()
-        shopcard.ordering_finish(bot, user)
+        print(order.DeliveryType)
+        shopcard.ordering_finish(bot, user, message)
 
 
 if __name__ == "__main__":
