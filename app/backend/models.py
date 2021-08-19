@@ -127,6 +127,9 @@ class Purchase(models.Model):
     def price(self):
         return self.product.price * self.count
 
+    def __str__(self):
+        return str(self.product)
+    
 
 class ShopCard(models.Model):
     shop_cards = models.Manager()

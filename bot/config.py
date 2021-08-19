@@ -15,7 +15,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 APP_DIR_PATH = os.path.normpath(os.path.join(SCRIPT_DIR, APP_DIR))
 sys.path.append(APP_DIR_PATH)
 
-print(sys.path)
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 django.setup()
 

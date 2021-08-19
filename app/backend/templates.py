@@ -44,6 +44,7 @@ class Messages():
     SEND_LOCATION = messages[14]
     CHOOSE_DELIVERY_TYPE = messages[15]
     PLEASE_SEND_LOCATION = messages[16]
+    PROFILE_CALL_HANDLER = messages[17]
 
 
 class Smiles():

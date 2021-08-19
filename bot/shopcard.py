@@ -265,7 +265,10 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases):
         status=Order.Status.RESERVED,
     )
     order.purchases.set(purchases)
-    user.shop_card.purchases.remove(purchases)
+    print(purchases)
+    for purchase in purchases:
+        user.shop_card.purchases.remove(purchase)
+    # print(user.shop_card.purchases.remove(purchases))
     chat_id = user.chat_id
     lang = user.lang
 
@@ -314,6 +317,7 @@ def purchases_buy_call_handler(bot: telebot.TeleBot, call):
 
 
 def delivery_type_call_handler(bot: telebot.TeleBot, call):
+    print(1)
     call_type = CallTypes.parse_data(call.data)
     delivery_type = call_type.delivery_type
 

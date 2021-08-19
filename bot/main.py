@@ -6,7 +6,7 @@ from telebot import types
 from backend.models import BotUser, Order
 from backend.templates import Keys, Messages
 
-from bot import products, commands, shopcard
+from bot import products, commands, shopcard, profile
 from bot.call_types import CallTypes
 from bot.states import States
 
@@ -17,7 +17,7 @@ bot = telebot.TeleBot(
     parse_mode='HTML',
 )
 
-
+print(bot.get_me())
 message_handlers = {
     '/start': commands.start_command_handler,
     '/menu': commands.menu_command_handler,
@@ -74,6 +74,8 @@ callback_query_handlers = {
     CallTypes.PurchaseRemove: shopcard.purchase_remove_call_handler,
     CallTypes.PurchaseBuy: shopcard.purchase_buy_call_handler,
     CallTypes.PurchaseBuy: shopcard.purchases_buy_call_handler,
+
+    CallTypes.Profile: profile.profile_call_handler,
 }
 
 
@@ -110,8 +112,9 @@ def contact_handler(message):
         lang = user.lang
 
         text = Messages.REGISTRATION_FINISHED.get(lang)
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         keyboard.add(Keys.MENU.get(lang))
+        bot.delete_message(chat_id=chat_id, message_id=message.id-1)
         bot.send_message(chat_id, text,
                          reply_markup=keyboard)
 
@@ -121,9 +124,11 @@ def location_handler(message):
     chat_id = message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     if user.bot_state == States.SEND_LOCATION:
+        print(message.location.longitude)
         longitude = message.location.longitude
         latitude = message.location.latitude
         order = user.orders.filter(status=Order.Status.RESERVED).first()
+
         order.longitude = longitude
         order.latitude = latitude
         order.save()
@@ -131,5 +136,5 @@ def location_handler(message):
 
 
 if __name__ == "__main__":
-    # bot.polling()
-    bot.infinity_polling()
+    bot.polling()
+    # bot.infinity_polling()
