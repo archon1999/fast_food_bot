@@ -82,7 +82,7 @@ callback_query_handlers = {
     CallTypes.PurchasesBuy: shopcard.purchases_buy_call_handler,
 
     CallTypes.Profile: profile.profile_call_handler,
-    CallTypes.Profile_edited: profile.edit_profile,
+    CallTypes.ProfileEdit: profile.profile_edit_call_handler,
 }
 
 

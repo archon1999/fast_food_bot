@@ -24,7 +24,7 @@ class Keys():
     CANCEL = keys[14]
     PAYMENT_DELIVERY = keys[15]
     SELF_CALL = keys[16]
-    PROFILE_EDITED = keys[17]
+    PROFILE_EDIT = keys[17]
 
 
 class Messages():
@@ -45,10 +45,10 @@ class Messages():
     SEND_LOCATION = messages[14]
     CHOOSE_DELIVERY_TYPE = messages[15]
     PLEASE_SEND_LOCATION = messages[16]
-    PROFILE_CALL_HANDLER = messages[17]
+    PROFILE_INFO = messages[17]
     SUCCESFULL_ORDERING = messages[18]
     NEW_ORDER = messages[19]
-    PROFILE_EDITED = messages[20]
+    PROFILE_EDIT = messages[20]
 
 
 class Smiles():
