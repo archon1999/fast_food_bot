@@ -356,7 +356,7 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type)
     user.bot_state = ''
     user.save()
     if order.DeliveryType.PAYMENT_DELIVERY == Order.DeliveryType.PAYMENT_DELIVERY:
-        print(1)
+        print(1) 
         text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
         bot.send_message(chat_id=user.chat_id, text=text)
         commands.menu_command_handler(bot=bot, message=message)

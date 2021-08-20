@@ -56,7 +56,8 @@ class CallTypes():
     PurchaseBuy = CallTypeMeta('PurchaseBuy', 'page__int')
     PurchasesBuy = CallTypeMeta('PurchasesBuy')
     DeliveryType = CallTypeMeta('DeliveryType', 'delivery_type')
-
+    
+    Profile_edited = CallTypeMeta('Profil_edit')
     Nothing = CallTypeMeta('Nothing')
 
     @classmethod

@@ -45,8 +45,6 @@ def message_handler(message):
                     user.bot_state = ''
                     user.save()
                     commands.menu_command_handler(bot=bot, message=message)
-                    # msg = bot.send_message(chat_id=chat_id, text='bosh sahifa')
-                    # bot.register_next_step_handler(msg, shopcard.delivery_type_call_handler)
                 else:
                     lang = user.lang
                     text = Messages.PLEASE_SEND_LOCATION.get(lang)
@@ -84,6 +82,7 @@ callback_query_handlers = {
     CallTypes.PurchasesBuy: shopcard.purchases_buy_call_handler,
 
     CallTypes.Profile: profile.profile_call_handler,
+    CallTypes.Profile_edited: profile.edit_profile,
 }
 
 
