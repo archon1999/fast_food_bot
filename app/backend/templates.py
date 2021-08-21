@@ -49,6 +49,9 @@ class Messages():
     SUCCESFULL_ORDERING = messages[18]
     NEW_ORDER = messages[19]
     PROFILE_EDIT = messages[20]
+    PROFILE_EDIT_FULLNAME = messages[21]
+    SUCCES_FULL_NAME = messages[22]
+    INFO_MESSAGE = messages[23]
 
 
 class Smiles():

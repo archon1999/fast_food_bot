@@ -1,12 +1,13 @@
+from logging import info
 import config
 
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Order
+from backend.models import BotUser, Info, Order
 from backend.templates import Keys, Messages
 
-from bot import products, commands, shopcard, profile
+from bot import products, commands, shopcard, profile, info
 from bot.call_types import CallTypes
 from bot.states import States
 
@@ -83,6 +84,9 @@ callback_query_handlers = {
 
     CallTypes.Profile: profile.profile_call_handler,
     CallTypes.ProfileEdit: profile.profile_edit_call_handler,
+    CallTypes.ProfileEditFullName: profile.profile_edit_full_name_call_handler,
+
+    CallTypes.Info: info.info_message_call_handler,
 }
 
 

@@ -3,9 +3,11 @@ from django.contrib import admin
 from backend.models import (BotUser,
                             Category,
                             Order,
+                            ShopCard,
                             Product,
                             Template,
-                            Purchase)
+                            Purchase,
+                            Info, Comment)
 
 
 @admin.register(BotUser)
@@ -36,3 +38,19 @@ class PurchaseAdmin(admin.ModelAdmin):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'status', 'created']
+
+admin.site.register(ShopCard)
+
+
+class CommentInline(admin.TabularInline):
+    model = Comment
+
+class InfoAdmins(admin.ModelAdmin):
+    inlines = [
+        CommentInline
+    ]
+
+admin.site.register(Info, InfoAdmins)
+# @admin.register(Info)
+# class InfoAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'title_uz']

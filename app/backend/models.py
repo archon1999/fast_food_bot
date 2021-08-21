@@ -131,6 +131,38 @@ class Purchase(models.Model):
         return str(self.product)
     
 
+class Info(models.Model):
+    title_uz = models.CharField(max_length=100, verbose_name='Nomi')
+    title_ru = models.CharField(max_length=100, verbose_name='Название')
+    title_en = models.CharField(max_length=100, verbose_name='Title')
+    description_uz = models.TextField(verbose_name='haqida')
+    description_ru = models.TextField(verbose_name='Описание')
+    description_en = models.TextField(verbose_name='Description')
+    image = models.ImageField(
+        upload_to='backend/images/',
+        default='backend/images/default.png',
+        verbose_name='Rasm',)
+    
+    def get_title(self, lang):
+        return getattr(self, f'title_{lang}')
+
+    def get_description(self, lang):
+        return getattr(self, f'description_{lang}')
+
+    class Meta:
+        verbose_name = 'Malumot'
+        verbose_name_plural = verbose_name + 'lar'
+
+
+class Comment(models.Model):
+    info = models.ForeignKey(
+        Info,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    name = models.CharField(max_length=50)
+    name1 = models.CharField(max_length=50)
+
 class ShopCard(models.Model):
     shop_cards = models.Manager()
     user = models.OneToOneField(
