@@ -50,7 +50,6 @@ def language_call_handler(bot: telebot.TeleBot, call):
     user.save()
     ShopCard.shop_cards.get_or_create(user=user)
     if success:
-        ShopCard.shop_cards.create(user=user)
         registration_start_handler(bot, call.message)
     else:
         menu_command_handler(bot, call.message)
