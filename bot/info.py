@@ -1,5 +1,5 @@
 import os
-from backend.admin import CategoryAdmin
+
 import config
 
 import telebot
@@ -38,7 +38,7 @@ def get_button(info: Info, lang):
     keyboard.add(back_button)
     return keyboard
 
-    
+
 def info_message_call_handler(bot: telebot.TeleBot, call):
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
@@ -47,17 +47,6 @@ def info_message_call_handler(bot: telebot.TeleBot, call):
     image_path = get_info_image_path(info)
     product_info = get_info_info(info, user.lang)
     with open(image_path, 'rb') as photo:
-        # bot.edit_message_media(
-        #     media=types.InputMedia(
-        #         type='photo',
-        #         media=photo,
-        #         caption=product_info,
-        #         parse_mode='HTML',
-        #     ),
-        #     chat_id=chat_id,
-        #     message_id=call.message.id,
-        #     # reply_markup=keyboard,
-        # )
         bot.send_photo(
             chat_id=chat_id,
             photo=photo,
@@ -66,8 +55,3 @@ def info_message_call_handler(bot: telebot.TeleBot, call):
         )
 
 
-
-# for info in Info.objects.all():
-#     print(info.title_uz, info.description_uz)
-#     for i in info.comments.all():
-#         print(i.name, i.name1)

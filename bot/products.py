@@ -187,12 +187,7 @@ def product_page_call_handler(bot: telebot.TeleBot, call):
             message_id=call.message.id,
             reply_markup=keyboard,
         )
-        # bot.send_photo(
-        #     chat_id=chat_id,
-        #     photo=photo,
-        #     caption=product_info,
-        #     reply_markup=keyboard,
-        # )
+       
 
 
 def get_product_info(product: Product, lang: str):
