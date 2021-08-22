@@ -60,7 +60,11 @@ class CallTypes():
     ProfileEdit = CallTypeMeta('ProfileEdit')
     ProfileEditFullName = CallTypeMeta('ProfileEditFullName')
     ProfileEditContact = CallTypeMeta('ProfileEditContact')
+    
+    Yes_or_No = CallTypeMeta('Yes_or_No', 'yes', 'no')
+    Ratings = CallTypeMeta('Ratings', 'balls')
     Nothing = CallTypeMeta('Nothing')
+
 
     @classmethod
     def parse_data(cls, call_data: str):

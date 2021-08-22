@@ -1,4 +1,4 @@
-from logging import info
+
 import config
 
 import telebot
@@ -87,6 +87,8 @@ callback_query_handlers = {
     CallTypes.ProfileEditFullName: profile.profile_edit_full_name_call_handler,
 
     CallTypes.Info: info.info_message_call_handler,
+    CallTypes.Ratings: info.rating_balls_call_handler,
+    CallTypes.Yes_or_No: info.yes_or_no_message_handler
 }
 
 

@@ -25,6 +25,8 @@ class Keys():
     PAYMENT_DELIVERY = keys[15]
     SELF_CALL = keys[16]
     PROFILE_EDIT = keys[17]
+    YES_KEYBOARD = keys[18]
+    NO_KEYBOARD = keys[19]
 
 
 class Messages():
@@ -52,6 +54,7 @@ class Messages():
     PROFILE_EDIT_FULLNAME = messages[21]
     SUCCES_FULL_NAME = messages[22]
     INFO_MESSAGE = messages[23]
+    RATING_MESSAGE = messages[24]
 
 
 class Smiles():

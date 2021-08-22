@@ -163,6 +163,15 @@ class Comment(models.Model):
     name = models.CharField(max_length=50)
     name1 = models.CharField(max_length=50)
 
+
+class Review(models.Model):
+    user = models.ForeignKey(BotUser, on_delete=models.CASCADE)
+    rating = models.IntegerField()
+    description = models.TextField()
+
+    def __str__(self):
+        return str(self.rating)
+    
 class ShopCard(models.Model):
     shop_cards = models.Manager()
     user = models.OneToOneField(

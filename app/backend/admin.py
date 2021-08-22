@@ -7,7 +7,9 @@ from backend.models import (BotUser,
                             Product,
                             Template,
                             Purchase,
-                            Info, Comment)
+                            Info, 
+                            Comment,
+                            Review)
 
 
 @admin.register(BotUser)
@@ -25,6 +27,9 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ['id', 'title_uz', 'description_uz', 'price', 'category']
 
 
+@admin.register(Review)
+class ReviwAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'rating']
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
     list_display = ['title', 'type']
@@ -51,6 +56,3 @@ class InfoAdmins(admin.ModelAdmin):
     ]
 
 admin.site.register(Info, InfoAdmins)
-# @admin.register(Info)
-# class InfoAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'title_uz']
