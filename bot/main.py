@@ -4,7 +4,7 @@ import config
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Info, Order
+from backend.models import AboutShop, BotUser, Order
 from backend.templates import Keys, Messages
 
 from bot import products, commands, shopcard, profile, info
@@ -86,9 +86,11 @@ callback_query_handlers = {
     CallTypes.ProfileEdit: profile.profile_edit_call_handler,
     CallTypes.ProfileEditFullName: profile.profile_edit_full_name_call_handler,
 
-    CallTypes.Info: info.info_message_call_handler,
-    CallTypes.Ratings: info.rating_balls_call_handler,
-    CallTypes.Yes_or_No: info.yes_or_no_message_handler
+    CallTypes.Info: info.info_call_handler,
+    CallTypes.AboutShop: info.about_shop_call_handler,
+    CallTypes.ShopContactsAndLocation:
+        info.shop_contacts_and_location_call_handler,
+    CallTypes.ShopReviews: info.shop_reviews_call_handler,
 }
 
 

@@ -40,7 +40,6 @@ class CallTypes():
     ShopCard = CallTypeMeta('ShopCard')
     Orders = CallTypeMeta('Orders')
     Profile = CallTypeMeta('Profile')
-    Info = CallTypeMeta('Info')
     Admin = CallTypeMeta('Admin')
 
     Category = CallTypeMeta('Category', 'category_id__int')
@@ -60,11 +59,19 @@ class CallTypes():
     ProfileEdit = CallTypeMeta('ProfileEdit')
     ProfileEditFullName = CallTypeMeta('ProfileEditFullName')
     ProfileEditContact = CallTypeMeta('ProfileEditContact')
-    
-    Yes_or_No = CallTypeMeta('Yes_or_No', 'yes', 'no')
+
+    Info = CallTypeMeta('Info')
+
+    AboutShop = CallTypeMeta('AboutShop')
+    ShopContactsAndLocation = CallTypeMeta('ShopContactsAndLocation')
+    ShopReviews = CallTypeMeta('ShopReviews', 'page__int')
+    ShopMyReview = CallTypeMeta('ShopMyReview')
+
+    AboutBot = CallTypeMeta('AboutBot')
+
+    YesOrNo = CallTypeMeta('YesOrNo', 'yes', 'no')
     Ratings = CallTypeMeta('Ratings', 'balls')
     Nothing = CallTypeMeta('Nothing')
-
 
     @classmethod
     def parse_data(cls, call_data: str):

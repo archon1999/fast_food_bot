@@ -1,15 +1,7 @@
 from django.contrib import admin
 
-from backend.models import (BotUser,
-                            Category,
-                            Order,
-                            ShopCard,
-                            Product,
-                            Template,
-                            Purchase,
-                            Info, 
-                            Comment,
-                            Review)
+from backend.models import (AboutShop, BotUser, Category, Order, Product,
+                            Purchase, Review, ShopCard, Template)
 
 
 @admin.register(BotUser)
@@ -30,6 +22,8 @@ class ProductAdmin(admin.ModelAdmin):
 @admin.register(Review)
 class ReviwAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'rating']
+
+
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
     list_display = ['title', 'type']
@@ -44,15 +38,7 @@ class PurchaseAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'status', 'created']
 
-admin.site.register(ShopCard)
 
-
-class CommentInline(admin.TabularInline):
-    model = Comment
-
-class InfoAdmins(admin.ModelAdmin):
-    inlines = [
-        CommentInline
-    ]
-
-admin.site.register(Info, InfoAdmins)
+@admin.register(AboutShop)
+class AboutShopAdmin(admin.ModelAdmin):
+    list_display = ['title_uz', 'description_uz']

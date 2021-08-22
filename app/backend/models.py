@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models import F, Sum
 from django.utils import timezone
 
+from tinymce.models import HTMLField
+
 
 class BotUser(models.Model):
     class Lang(models.TextChoices):
@@ -129,49 +131,57 @@ class Purchase(models.Model):
 
     def __str__(self):
         return str(self.product)
-    
 
-class Info(models.Model):
+
+class AboutShop(models.Model):
     title_uz = models.CharField(max_length=100, verbose_name='Nomi')
     title_ru = models.CharField(max_length=100, verbose_name='Название')
     title_en = models.CharField(max_length=100, verbose_name='Title')
-    description_uz = models.TextField(verbose_name='haqida')
-    description_ru = models.TextField(verbose_name='Описание')
-    description_en = models.TextField(verbose_name='Description')
+    description_uz = HTMLField(verbose_name='haqida')
+    description_ru = HTMLField(verbose_name='Описание')
+    description_en = HTMLField(verbose_name='Description')
+    contacts_and_location_uz = HTMLField(verbose_name='Bog`lanish va manzil')
+    contacts_and_location_ru = HTMLField(verbose_name='Контакты и адрес')
+    contacts_and_location_en = HTMLField(verbose_name='Contacts and location')
+
     image = models.ImageField(
         upload_to='backend/images/',
-        default='backend/images/default.png',
-        verbose_name='Rasm',)
-    
+        verbose_name='Rasm'
+    )
+
+    longitude = models.FloatField(null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+
     def get_title(self, lang):
         return getattr(self, f'title_{lang}')
 
     def get_description(self, lang):
         return getattr(self, f'description_{lang}')
 
+    def get_contacts_and_location(self, lang):
+        return getattr(self, f'contacts_and_location_{lang}')
+
     class Meta:
         verbose_name = 'Malumot'
         verbose_name_plural = verbose_name + 'lar'
 
 
-class Comment(models.Model):
-    info = models.ForeignKey(
-        Info,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    name = models.CharField(max_length=50)
-    name1 = models.CharField(max_length=50)
-
-
 class Review(models.Model):
+    reviews = models.Manager()
     user = models.ForeignKey(BotUser, on_delete=models.CASCADE)
     rating = models.IntegerField()
     description = models.TextField()
 
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['updated']
+
     def __str__(self):
         return str(self.rating)
-    
+
+
 class ShopCard(models.Model):
     shop_cards = models.Manager()
     user = models.OneToOneField(
@@ -237,7 +247,7 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.purchases)
-    
+
     class Meta:
         verbose_name = 'Buyurtmalar'
         verbose_name_plural = verbose_name + 'lar'

@@ -1,4 +1,3 @@
-from datetime import date
 import config
 
 import telebot

@@ -27,6 +27,11 @@ class Keys():
     PROFILE_EDIT = keys[17]
     YES_KEYBOARD = keys[18]
     NO_KEYBOARD = keys[19]
+    ABOUT_SHOP = keys[20]
+    ABOUT_BOT = keys[21]
+    SHOP_CONTACTS_AND_LOCATION = keys[22]
+    SHOP_REVIEWS = keys[23]
+    MY_REVIEW = keys[24]
 
 
 class Messages():
@@ -53,8 +58,9 @@ class Messages():
     PROFILE_EDIT = messages[20]
     PROFILE_EDIT_FULLNAME = messages[21]
     SUCCES_FULL_NAME = messages[22]
-    INFO_MESSAGE = messages[23]
-    RATING_MESSAGE = messages[24]
+    RATING_MESSAGE = messages[23]
+    ABOUT_SHOP = messages[24]
+    REVIEW = messages[25]
 
 
 class Smiles():
@@ -65,3 +71,4 @@ class Smiles():
     ADD = smiles[4]
     SUBTRACT = smiles[5]
     REMOVE = smiles[6]
+    STAR = smiles[7]
