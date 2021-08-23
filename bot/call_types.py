@@ -66,6 +66,9 @@ class CallTypes():
     ShopContactsAndLocation = CallTypeMeta('ShopContactsAndLocation')
     ShopReviews = CallTypeMeta('ShopReviews', 'page__int')
     ShopMyReview = CallTypeMeta('ShopMyReview')
+    ShopCardYes = CallTypeMeta('ShopCardYes', 'id__int', 'yes',)
+    ShopCardCookYes = CallTypeMeta('ShopCardCookYes', 'id__int', 'yes')
+
     RatingKey = CallTypeMeta('RatingKey', 'balls__int')
 
     AboutBot = CallTypeMeta('AboutBot')

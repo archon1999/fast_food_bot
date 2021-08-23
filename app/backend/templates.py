@@ -67,6 +67,8 @@ class Messages():
     CONTACT_NUMBER = messages[29]
     PLEASE_CONTACT_NUMBER = messages[30]
     SUCCES_CONTACT = messages[31]
+    SEND_COOK_AND_DRIVER = messages[32]
+    NOT_ACCEPTED_ORDER = messages[33]
 
 
 class Smiles():

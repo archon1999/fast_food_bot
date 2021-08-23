@@ -1,4 +1,5 @@
 import os
+from backend import admin
 import config
 
 import telebot
@@ -99,11 +100,6 @@ def make_purchase_keyboard(user: BotUser, page):
     purchase = purchases[page]
     lang = user.lang
     page_buttons = [
-        # utils.make_inline_button(
-        #     text=Smiles.PREVIOUS_5.text,
-        #     CallType=CallTypes.PurchasePage,
-        #     page=utils.normalize_page(page-5, purchases_count),
-        # ),
         utils.make_inline_button(
             text=Smiles.PREVIOUS.text,
             CallType=CallTypes.PurchasePage,
@@ -118,11 +114,6 @@ def make_purchase_keyboard(user: BotUser, page):
             CallType=CallTypes.PurchasePage,
             page=utils.normalize_page(page+1, purchases_count),
         ),
-        # utils.make_inline_button(
-        #     text=Smiles.NEXT_5.text,
-        #     CallType=CallTypes.PurchasePage,
-        #     page=utils.normalize_page(page+5, purchases_count),
-        # ),
     ]
     plus_minus_buttons = [
         utils.make_inline_button(
@@ -347,6 +338,27 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         print(12)
         ordering_finish(bot, user, call.message, delivery_type)
 
+def yes_or_no(id, admins):
+    button = [
+        utils.make_inline_button(
+            text=Keys.YES_KEYBOARD.get(admins.lang),
+            CallType=CallTypes.ShopCardYes,
+            id=id,
+            yes='yes',
+            # userid=admins.chat_id
+        ),
+        utils.make_inline_button(
+            text=Keys.NO_KEYBOARD.get(admins.lang),
+            CallType=CallTypes.ShopCardYes,
+            id=id,
+            yes='no',
+            # userid=admins.chat_id
+        )
+    ]
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*button)
+    return keyboard
+
 def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
     order.delivery_type=delivery_type
@@ -360,10 +372,7 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type)
         text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
         bot.send_message(chat_id=user.chat_id, text=text)
         commands.menu_command_handler(bot=bot, message=message)
-        for admins in BotUser.objects.all():
-            if admins.type == BotUser.Type.ADMIN:
-                print(admins, admins.type, BotUser.Type.ADMIN, user.type)
-                # purchase = get_purchases_info(purchases, user.lang)
+        for admins in BotUser.objects.filter(type=BotUser.Type.ADMIN):
                 text = Messages.NEW_ORDER.get(user.lang).format(
                     id=order.id,
                     uid=user.chat_id, 
@@ -372,13 +381,92 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type)
                     delivery_type=order.delivery_type,
                     longitude=order.longitude,
                     latitude=order.latitude,
-                    # purchases=purchase
+                  
                 )
 
-                bot.send_message(
-                    chat_id=admins.chat_id,
-                    text=text
-                )
+                bot.send_message(chat_id=admins.chat_id, text=text,
+                                    reply_markup=yes_or_no(order.id, admins))
+
                 bot.send_location(chat_id=admins.chat_id, latitude=order.latitude,
                                         longitude=order.longitude)
-   
+
+
+def cook_keyboard(id, cook):
+    button = [
+        utils.make_inline_button(
+            text=Keys.YES_KEYBOARD.get(cook.lang),
+            CallType=CallTypes.ShopCardCookYes,
+            id=id,
+            yes='yes',
+        ),
+        utils.make_inline_button(
+            text=Keys.NO_KEYBOARD.get(cook.lang),
+            CallType=CallTypes.ShopCardCookYes,
+            id=id,
+            yes='no',
+        )
+    ]
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*button)
+    return keyboard
+
+def shop_card_yes_or_no(bot: telebot.TeleBot, call):
+    call_type = CallTypes.parse_data(call.data)
+    
+    chat_id = call.message.chat.id
+    order = Order.orders.get(id=call_type.id)
+    user= BotUser.objects.get(chat_id=chat_id)
+    if call_type.yes == 'yes':
+        text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
+        bot.send_message(chat_id=chat_id, text=text)
+        commands.menu_command_handler(bot, call.message)
+        for cook in BotUser.objects.filter(type=BotUser.Type.COOK):
+                text = Messages.NEW_ORDER.get(cook.lang).format(
+                    id=call_type.id,
+                    uid=order.user.chat_id, 
+                    user=order.user, 
+                    contact=order.user.contact,
+                    delivery_type=order.delivery_type,
+                    longitude=order.longitude,
+                    latitude=order.latitude, 
+                )
+
+                bot.send_message(chat_id=cook.chat_id, text=text, 
+                                    reply_markup=cook_keyboard(call_type.id, cook))
+
+    else:
+        text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
+        bot.send_message(chat_id=order.user.chat_id, text=text)
+        commands.menu_command_handler(bot, call.message)
+         
+def shopcard_cook_call_handler(bot: telebot.TeleBot, call):
+    call_type = CallTypes.parse_data(call.data)
+    chat_id = call.message.chat.id
+    order = Order.orders.get(id=call_type.id)
+    user= BotUser.objects.get(chat_id=chat_id)
+    print(call_type)
+    if call_type.yes == 'yes':
+        text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
+        bot.send_message(chat_id=chat_id, text=text)
+        commands.menu_command_handler(bot, call.message)
+        for driver in BotUser.objects.filter(type=BotUser.Type.DRIVER):
+                text = Messages.NEW_ORDER.get(driver.lang).format(
+                    id=call_type.id,
+                    uid=order.user.chat_id, 
+                    user=order.user, 
+                    contact=order.user.contact,
+                    delivery_type=order.delivery_type,
+                    longitude=order.longitude,
+                    latitude=order.latitude, 
+                )
+
+                bot.send_message(chat_id=driver.chat_id, text=text, )
+                                    # reply_markup=cook_keyboard(call_type.id, cook))
+                
+                bot.send_location(chat_id=driver.chat_id, latitude=order.latitude,
+                                        longitude=order.longitude)
+    else:
+        text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
+        bot.send_message(chat_id=order.user.chat_id, text=text)
+        commands.menu_command_handler(bot, call.message)
+         

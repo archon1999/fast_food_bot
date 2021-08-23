@@ -101,6 +101,8 @@ callback_query_handlers = {
     CallTypes.PurchaseRemove: shopcard.purchase_remove_call_handler,
     CallTypes.PurchaseBuy: shopcard.purchase_buy_call_handler,
     CallTypes.PurchasesBuy: shopcard.purchases_buy_call_handler,
+    CallTypes.ShopCardYes: shopcard.shop_card_yes_or_no,
+    CallTypes.ShopCardCookYes: shopcard.shopcard_cook_call_handler,
 
     CallTypes.Profile: profile.profile_call_handler,
     CallTypes.ProfileEdit: profile.profile_edit_call_handler,
