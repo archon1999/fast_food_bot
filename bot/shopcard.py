@@ -368,18 +368,17 @@ def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type)
                     id=order.id,
                     uid=user.chat_id, 
                     user=user, 
+                    contact=user.contact,
                     delivery_type=order.delivery_type,
                     longitude=order.longitude,
                     latitude=order.latitude,
                     # purchases=purchase
                 )
+
                 bot.send_message(
                     chat_id=admins.chat_id,
                     text=text
                 )
-    # else:
-    #     order = user.orders.filter(status=Order.Status.RESERVED, delivery_type=Order.DeliveryType.SELF_CALL).first()
-    #     order.status = Order.Status.IN_QUEUE
-    #     order.save()
-    #     text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
-    #     bot.send_message(chat_id=user.chat_id, text=text)
+                bot.send_location(chat_id=admins.chat_id, latitude=order.latitude,
+                                        longitude=order.longitude)
+   
