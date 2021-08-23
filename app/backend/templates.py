@@ -61,6 +61,12 @@ class Messages():
     RATING_MESSAGE = messages[23]
     ABOUT_SHOP = messages[24]
     REVIEW = messages[25]
+    RATING_EVALUATION = messages[26]
+    OPINION_MESSAGE = messages[27]
+    SAVE_OPINION = messages[28]
+    CONTACT_NUMBER = messages[29]
+    PLEASE_CONTACT_NUMBER = messages[30]
+    SUCCES_CONTACT = messages[31]
 
 
 class Smiles():

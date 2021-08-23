@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from backend.models import (AboutShop, BotUser, Category, Order, Product,
-                            Purchase, Review, ShopCard, Template)
+                            Purchase, Review, ShopCard, Template, AboutBot)
 
 
 @admin.register(BotUser)
@@ -13,6 +13,9 @@ class BotUserAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['id', 'name_uz', 'parent']
 
+# @admin.register(AboutBot)
+# class AboutBotAdmin(admin.ModelAdmin):
+#     list_display = ['title_uz', 'description_uz']
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

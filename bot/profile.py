@@ -1,3 +1,4 @@
+from bot.states import States
 import os
 import config
 
@@ -41,10 +42,7 @@ def profile_call_handler(bot: telebot.TeleBot, call):
     )
 
 
-def profile_edit_call_handler(bot: telebot.TeleBot, call):
-    chat_id = call.message.chat.id
-    user = BotUser.objects.get(chat_id=chat_id)
-
+def profile_keyboard_hander(user):
     profile_edit_full_name_button = utils.make_inline_button(
         text=user.full_name,
         CallType=CallTypes.ProfileEditFullName,
@@ -61,6 +59,12 @@ def profile_edit_call_handler(bot: telebot.TeleBot, call):
     keyboard.add(profile_edit_full_name_button)
     keyboard.add(profile_edit_contact_button)
     keyboard.add(back_button)
+    return keyboard
+
+def profile_edit_call_handler(bot: telebot.TeleBot, call):
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    keyboard = profile_keyboard_hander(user)
     text = Messages.PROFILE_EDIT.get(user.lang).format(
         full_name=user.full_name,
         contact=user.contact,
@@ -75,18 +79,15 @@ def profile_edit_call_handler(bot: telebot.TeleBot, call):
 def profile_edit_full_name_call_handler(bot: telebot.TeleBot, call):
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
-    if user.bot_state == None:            
-        text = Messages.PROFILE_EDIT_FULLNAME.get(user.lang)
-        print(user.bot_state)
-        bot.send_message(
-            chat_id=chat_id,
-            text=text,
-        )
-        user.bot_state = 'edit_name'
-        user.save()
-        profile_edit_full_name_call_handler(bot, call)
-    else:
-        profile_edit_full_name(bot, call.message, user)
+    text = Messages.PROFILE_EDIT_FULLNAME.get(user.lang)
+    print(user.bot_state)
+    bot.edit_message_text(
+        text=text,
+        chat_id=chat_id,
+        message_id=call.message.id
+    )
+    user.bot_state = States.PROFILE_EDIT_FULL_NAME
+    user.save()
 
     
 
@@ -94,13 +95,32 @@ def profile_edit_full_name(bot: telebot.TeleBot, message, user):
     chat_id = message.chat.id
     lang = user.lang
     
-    text = Messages.SUCCES_FULL_NAME.get(lang)
     user.full_name = message.text
     user.bot_state = None
     user.save()
+    keyboard = profile_keyboard_hander(user)
+    text = Messages.SUCCES_FULL_NAME.get(lang).format(full_name=user.full_name,
+                                                        contact=user.contact)
     bot.send_message(
         chat_id=chat_id,
-        text=text
+        text=text,
+        reply_markup=keyboard
     )
-    profile_call_handler
 
+
+def profile_edit_contact(bot: telebot.TeleBot, call):
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    user.bot_state = States.PROFILE_EDIT_CONTACT
+    user.save()
+    text = Messages.CONTACT_NUMBER.get(user.lang)
+    bot.edit_message_text(text=text, chat_id=chat_id,
+                            message_id=call.message.id)
+
+def profile_edit_contact_number(bot: telebot.TeleBot, message, user):
+    chat_id = message.chat.id
+    user.contact = message.text
+    user.save()
+    text = Messages.SUCCES_CONTACT.get(user.lang).format(full_name=user.full_name, contact=user.contact)
+    bot.send_message(chat_id=chat_id, text=text,
+                        reply_markup=profile_keyboard_hander(user))

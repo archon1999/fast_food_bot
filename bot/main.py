@@ -1,10 +1,11 @@
 
+from os import stat
 import config
 
 import telebot
 from telebot import types
 
-from backend.models import AboutShop, BotUser, Order
+from backend.models import AboutBot, AboutShop, BotUser, Order
 from backend.templates import Keys, Messages
 
 from bot import products, commands, shopcard, profile, info
@@ -34,23 +35,42 @@ def message_handler(message):
     chat_id = message.chat.id
     if BotUser.objects.filter(chat_id=chat_id).exists():
         user = BotUser.objects.get(chat_id=chat_id)
+        lang = user.lang
         if (state := user.bot_state):
             if state == States.SEND_CONTACT:
-                lang = user.lang
                 text = Messages.PLEASE_SEND_CONTACT.get(lang)
                 bot.send_message(chat_id, text)
 
             if state == States.SEND_LOCATION:
-                if message.text == Keys.CANCEL.get(user.lang):
+                if message.text == Keys.CANCEL.get(lang):
                     print(message.text)
                     user.bot_state = ''
                     user.save()
                     commands.menu_command_handler(bot=bot, message=message)
                 else:
-                    lang = user.lang
                     text = Messages.PLEASE_SEND_LOCATION.get(lang)
                     bot.send_message(chat_id, text)
 
+            if state == States.OPINION:
+                user.bot_state = ''
+                user.save()
+                info.review_message(bot=bot, message=message)
+            
+            elif state == States.PROFILE_EDIT_FULL_NAME:
+                user.bot_state = ''
+                user.save()
+                profile.profile_edit_full_name(bot, message, user)
+
+            elif state == States.PROFILE_EDIT_CONTACT:
+                print(message.text[:5])
+                if (message.text[:5] == '+9989') or (message.text[:4] == '9989'):
+                    user.bot_state = ''
+                    user.save()
+                    print(11)
+                    profile.profile_edit_contact_number(bot, message, user)
+                else:
+                    text = Messages.PLEASE_CONTACT_NUMBER.get(lang)
+                    bot.send_message(chat_id=chat_id, text=text)
             return
 
     for text, message_handler in message_handlers.items():
@@ -85,12 +105,17 @@ callback_query_handlers = {
     CallTypes.Profile: profile.profile_call_handler,
     CallTypes.ProfileEdit: profile.profile_edit_call_handler,
     CallTypes.ProfileEditFullName: profile.profile_edit_full_name_call_handler,
+    CallTypes.ProfileEditContact: profile.profile_edit_contact,
 
     CallTypes.Info: info.info_call_handler,
     CallTypes.AboutShop: info.about_shop_call_handler,
     CallTypes.ShopContactsAndLocation:
         info.shop_contacts_and_location_call_handler,
     CallTypes.ShopReviews: info.shop_reviews_call_handler,
+    CallTypes.ShopMyReview: info.rating_message_handler,
+    CallTypes.RatingKey: info.rating_balls_call_handler,
+    CallTypes.YesOrNo: info.review_call_handler,
+    CallTypes.AboutBot: info.about_bot_call_handler
 }
 
 

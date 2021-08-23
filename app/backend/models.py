@@ -165,6 +165,22 @@ class AboutShop(models.Model):
         verbose_name = 'Malumot'
         verbose_name_plural = verbose_name + 'lar'
 
+class AboutBot(models.Model):
+    title_uz = models.CharField(max_length=100, verbose_name='Nomi')
+    title_ru = models.CharField(max_length=100, verbose_name='Название')
+    title_en = models.CharField(max_length=100, verbose_name='Title')
+
+    description_uz = HTMLField(verbose_name='haqida')
+    description_ru = HTMLField(verbose_name='Описание')
+    description_en = HTMLField(verbose_name='Description')
+
+    def get_title(self, lang):
+        return getattr(self, f'title_{lang}')
+
+    def get_description(self, lang):
+        return getattr(self, f'description_{lang}')
+
+
 
 class Review(models.Model):
     reviews = models.Manager()
@@ -176,7 +192,7 @@ class Review(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['updated']
+        ordering = ['-updated']
 
     def __str__(self):
         return str(self.rating)
@@ -249,7 +265,7 @@ class Order(models.Model):
         return str(self.purchases)
 
     class Meta:
-        verbose_name = 'Buyurtmalar'
+        verbose_name = 'Buyurtma'
         verbose_name_plural = verbose_name + 'lar'
 
 
