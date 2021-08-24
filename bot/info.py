@@ -1,5 +1,3 @@
-from random import triangular
-from bot.states import States
 import os
 
 import config
@@ -11,6 +9,7 @@ from django.core.paginator import Paginator
 from backend.models import BotUser, AboutShop, Review, AboutBot
 from backend.templates import Messages, Keys, Smiles
 
+from bot.states import States
 from bot import utils, commands
 from bot.call_types import CallTypes
 
@@ -31,7 +30,7 @@ def info_call_handler(bot: telebot.TeleBot, call):
         text=Keys.ABOUT_BOT.get(lang),
         CallType=CallTypes.AboutBot,
     )
-    back_button =   utils.make_inline_button(
+    back_button = utils.make_inline_button(
         text=Keys.BACK.get(user.lang),
         CallType=CallTypes.Back,
     )
@@ -110,64 +109,6 @@ def about_shop_call_handler(bot: telebot.TeleBot, call):
 
     bot.delete_message(chat_id, call.message.id)
 
-def rating_keyboard_handler(lang):
-    button = []
-    for key in range(5, 0, -1):
-        button.append(
-            utils.make_inline_button(
-                text=f'{Smiles.STAR}'*key,
-                CallType=CallTypes.RatingKey,
-                balls=key
-            )
-        )
-    back_button = utils.make_inline_button(
-        text=Keys.BACK.get(lang),
-        CallType=CallTypes.Info,
-    )
-    keyboard = types.InlineKeyboardMarkup(row_width=1)
-    keyboard.add(*button)
-    keyboard.add(back_button)
-    return keyboard
-
-def yes_or_no(lang):
-    yes = utils.make_inline_button(
-        text=Keys.YES_KEYBOARD.get(lang),
-        CallType=CallTypes.YesOrNo,
-        yes='yes'
-    )    
-    no = utils.make_inline_button(
-        text=Keys.NO_KEYBOARD.get(lang),
-        CallType=CallTypes.YesOrNo,
-        yes='no'
-    )
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(yes, no)
-    return keyboard
-
-def get_about_bot_info(lang: str):
-    aboutbot = AboutBot.objects.first()
-    text = Messages.ABOUT_SHOP.get(lang).format(
-        title=aboutbot.get_title(lang),
-        description=aboutbot.get_description(lang),
-    )
-    return utils.filter_html(text)
-
-def about_bot_call_handler(bot: telebot.TeleBot, call):
-    chat_id = call.message.chat.id
-    user = BotUser.objects.get(chat_id=chat_id)
-    lang = user.lang
-    back_button =   utils.make_inline_button(
-        text=Keys.BACK.get(lang),
-        CallType=CallTypes.Back,
-    )
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(back_button)
-    text = get_about_bot_info(lang)
-    bot.edit_message_text(text=text, chat_id=chat_id,
-                            message_id=call.message.id, disable_web_page_preview=True, 
-                            reply_markup=keyboard)
-       
-
 
 def shop_contacts_and_location_call_handler(bot: telebot.TeleBot, call):
     chat_id = call.message.chat.id
@@ -218,7 +159,7 @@ def shop_reviews_call_handler(bot: telebot.TeleBot, call):
         text=Keys.MY_REVIEW.get(lang),
         CallType=CallTypes.ShopMyReview,
     )
-    back_button =   utils.make_inline_button(
+    back_button = utils.make_inline_button(
         text=Keys.BACK.get(lang),
         CallType=CallTypes.Back,
     )
@@ -230,7 +171,7 @@ def shop_reviews_call_handler(bot: telebot.TeleBot, call):
     keyboard.add(my_review_button)
     keyboard.add(back_button)
     if call.message.content_type == 'photo':
-        bot.send_message(chat_id, reviews_info,
+        bot.send_message(chat_id, text,
                          reply_markup=keyboard)
     else:
         bot.edit_message_text(
@@ -241,52 +182,195 @@ def shop_reviews_call_handler(bot: telebot.TeleBot, call):
         )
 
 
-def rating_message_handler(bot: telebot.TeleBot, call):
+def shop_my_review_call_handler(bot: telebot.TeleBot, call):
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    lang = user.lang
+
+    keyboard = types.InlineKeyboardMarkup()
+    if Review.reviews.filter(user=user).exists():
+        my_review = user.shop_review
+        rating = f'{Smiles.STAR}'*min(5, my_review.rating)
+        my_review_info = Messages.REVIEW.get(lang).format(
+            full_name=user.full_name,
+            rating=rating,
+            description=my_review.description,
+            datetime=utils.datetime_to_utc5_str(my_review.updated),
+        ) + '\n'
+        change_review_button = utils.make_inline_button(
+            text=Keys.CHANGE_REVIEW.get(lang),
+            CallType=CallTypes.ShopMyReviewChange,
+        )
+        delete_review_button = utils.make_inline_button(
+            text=Keys.DELETE_REVIEW.get(lang),
+            CallType=CallTypes.ShopMyReviewDelete,
+        )
+        keyboard.add(change_review_button)
+        keyboard.add(delete_review_button)
+    else:
+        my_review_info = Messages.NO_REVIEW.get(lang)
+        write_review_button = utils.make_inline_button(
+            text=Keys.WRITE_REVIEW.get(lang),
+            CallType=CallTypes.ShopMyReviewChange,
+        )
+        keyboard.add(write_review_button)
+
+    text = utils.text_to_fat(Keys.MY_REVIEW)
+    text += utils.text_to_double_line(my_review_info)
+    back_button = utils.make_inline_button(
+        text=Keys.BACK.get(lang),
+        CallType=CallTypes.ShopReviews,
+        page=1,
+    )
+    keyboard.add(back_button)
+
+    bot.edit_message_text(
+        text=text,
+        chat_id=chat_id,
+        message_id=call.message.id,
+        reply_markup=keyboard,
+    )
+
+
+def make_review_rating_keyboard(lang):
+    max_rating = 5
+    min_rating = 1
+    keyboard = types.InlineKeyboardMarkup()
+    for rating_ball in reversed(range(min_rating, max_rating+1)):
+        rating_star_button = utils.make_inline_button(
+            text=f'{Smiles.STAR}'*rating_ball,
+            CallType=CallTypes.ShopMyReviewRatingBall,
+            ball=rating_ball,
+        )
+        keyboard.add(rating_star_button)
+
+    back_button = utils.make_inline_button(
+        text=Keys.BACK.get(lang),
+        CallType=CallTypes.ShopMyReview,
+    )
+    keyboard.add(back_button)
+    return keyboard
+
+
+def shop_my_review_change_call_handler(bot: telebot.TeleBot, call):
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     lang = user.lang
     text = Messages.RATING_EVALUATION.get(lang)
-    keyboard = rating_keyboard_handler(lang)
+    keyboard = make_review_rating_keyboard(lang)
     bot.edit_message_text(
         text=text,
         chat_id=chat_id,
         message_id=call.message.id,
         reply_markup=keyboard
-
     )
 
-def rating_balls_call_handler(bot: telebot.TeleBot, call):
-    call_type = CallTypes.parse_data(call.data)
-    chat_id = call.message.chat.id
-    ball = call_type.balls
-    user = BotUser.objects.get(chat_id=chat_id)
-    Review.reviews.create(user=user, rating=ball)
-    text = Messages.RATING_MESSAGE.get(user.lang)
-    bot.edit_message_text(text=text, chat_id=chat_id,
-                            message_id=call.message.id, reply_markup=yes_or_no(user.lang))
 
-def review_call_handler(bot: telebot.TeleBot, call):
+def shop_my_review_delete_call_handler(bot: telebot.TeleBot, call):
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    user.shop_review.delete()
+    lang = user.lang
+    text = Messages.SHOP_MY_REVIEW_DELETED.get(lang)
+    bot.send_message(chat_id, text)
+    commands.menu_command_handler(bot, call.message)
+
+
+def shop_my_review_rating_ball_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
+    ball = call_type.ball
+
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     lang = user.lang
-    if call_type.yes == 'yes':
+
+    if Review.reviews.filter(user=user).exists():
+        review = Review.reviews.get(user=user)
+        review.description = str()
+    else:
+        review = Review.reviews.create(user=user, rating=ball)
+
+    review.save()
+    text = Messages.WANT_WRITE_REVIEW.get(user.lang)
+    want_write_review_yes_button = utils.make_inline_button(
+        text=Keys.YES.get(lang),
+        CallType=CallTypes.WantWriteReview,
+        flag=True,
+    )
+    want_write_review_no_button = utils.make_inline_button(
+        text=Keys.NO.get(lang),
+        CallType=CallTypes.WantWriteReview,
+        flag=False,
+    )
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(want_write_review_yes_button)
+    keyboard.add(want_write_review_no_button)
+    bot.edit_message_text(
+        text=text,
+        chat_id=chat_id,
+        message_id=call.message.id,
+        reply_markup=keyboard,
+    )
+
+
+def want_write_review_call_handler(bot: telebot.TeleBot, call):
+    call_type = CallTypes.parse_data(call.data)
+    flag = call_type.flag
+
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    lang = user.lang
+
+    if flag:
         text = Messages.OPINION_MESSAGE.get(lang)
-        bot.edit_message_text(text=text, chat_id=chat_id,
-                                message_id=call.message.id)
-        print(1)
-        user.bot_state = States.OPINION
+        bot.edit_message_text(
+            text=text,
+            chat_id=chat_id,
+            message_id=call.message.id,
+        )
+        user.bot_state = States.WRITE_REVIEW
         user.save()
     else:
         commands.back_call_handler(bot, call)
 
 
-def review_message(bot: telebot.TeleBot, message):
+def write_review_message_handler(bot: telebot.TeleBot, message):
     chat_id = message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
-    reviw = Review.reviews.filter(user=user).first()
-    reviw.description = message.text
-    reviw.save()
+
+    review = user.shop_review
+    review.description = message.text
+    review.save()
+
     text = Messages.SAVE_OPINION.get(user.lang)
-    bot.send_message(chat_id=chat_id, text=text)
+    bot.send_message(chat_id, text)
     commands.menu_command_handler(bot, message)
+
+
+def get_about_bot_info(lang: str):
+    aboutbot = AboutBot.objects.first()
+    text = Messages.ABOUT_SHOP.get(lang).format(
+        title=aboutbot.get_title(lang),
+        description=aboutbot.get_description(lang),
+    )
+    return utils.filter_html(text)
+
+
+def about_bot_call_handler(bot: telebot.TeleBot, call):
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    lang = user.lang
+    back_button = utils.make_inline_button(
+        text=Keys.BACK.get(lang),
+        CallType=CallTypes.Back,
+    )
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(back_button)
+    text = get_about_bot_info(lang)
+    bot.edit_message_text(
+        text=text,
+        chat_id=chat_id,
+        message_id=call.message.id,
+        disable_web_page_preview=True,
+        reply_markup=keyboard
+    )

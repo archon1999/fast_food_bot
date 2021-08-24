@@ -1,5 +1,4 @@
 import os
-from backend import admin
 import config
 
 import telebot
@@ -251,14 +250,16 @@ def purchase_remove_call_handler(bot: telebot.TeleBot, call):
     purchase_page_call_handler(bot, call)
 
 
-def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases):
+def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder):
     order = Order.orders.create(
         user=user,
         status=Order.Status.RESERVED,
     )
     order.purchases.set(purchases)
-    for purchase in purchases:
-        user.shop_card.purchases.remove(purchase)
+
+    if not reorder:
+        for purchase in purchases:
+            user.shop_card.purchases.remove(purchase)
 
     chat_id = user.chat_id
     lang = user.lang
@@ -282,7 +283,6 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases):
     text = Messages.CHOOSE_DELIVERY_TYPE.get(lang)
     bot.send_message(chat_id, text,
                      reply_markup=keyboard)
-    
 
 
 def purchase_buy_call_handler(bot: telebot.TeleBot, call):
@@ -296,7 +296,7 @@ def purchase_buy_call_handler(bot: telebot.TeleBot, call):
     purchases = shop_card.purchases.all()
     purchase = purchases[page]
     purchases = shop_card.purchases.filter(id=purchase.id)
-    ordering_start(bot, user, purchases)
+    ordering_start(bot, user, purchases, False)
 
 
 def purchases_buy_call_handler(bot: telebot.TeleBot, call):
@@ -305,13 +305,12 @@ def purchases_buy_call_handler(bot: telebot.TeleBot, call):
 
     shop_card = user.shop_card
     purchases = shop_card.purchases.all()
-    ordering_start(bot, user, purchases)
+    ordering_start(bot, user, purchases, False)
 
 
 def delivery_type_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
     delivery_type = call_type.delivery_type
-    print(delivery_type)
 
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
@@ -321,7 +320,6 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         text = Messages.SEND_LOCATION.get(lang)
         user.bot_state = States.SEND_LOCATION
         user.save()
-        print(11)
         send_location_button = types.KeyboardButton(
             text=Keys.SEND_LOCATION.get(lang),
             request_location=True,
@@ -335,8 +333,8 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
         bot.send_message(chat_id, text,
                          reply_markup=keyboard)
     else:
-        print(12)
         ordering_finish(bot, user, call.message, delivery_type)
+
 
 def yes_or_no(id, admins):
     button = [
@@ -359,36 +357,38 @@ def yes_or_no(id, admins):
     keyboard.add(*button)
     return keyboard
 
-def ordering_finish(bot: telebot.TeleBot, user: BotUser, message, delivery_type):
+
+def ordering_finish(bot: telebot.TeleBot, message, user, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
-    order.delivery_type=delivery_type
+    order.delivery_type = delivery_type
     order.status = Order.Status.IN_QUEUE
     order.save()
-    print(order.delivery_type)
-    user.bot_state = ''
+    user.bot_state = None
     user.save()
     if order.DeliveryType.PAYMENT_DELIVERY == Order.DeliveryType.PAYMENT_DELIVERY:
-        print(1) 
         text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
         bot.send_message(chat_id=user.chat_id, text=text)
         commands.menu_command_handler(bot=bot, message=message)
-        for admins in BotUser.objects.filter(type=BotUser.Type.ADMIN):
-                text = Messages.NEW_ORDER.get(user.lang).format(
-                    id=order.id,
-                    uid=user.chat_id, 
-                    user=user, 
-                    contact=user.contact,
-                    delivery_type=order.delivery_type,
-                    longitude=order.longitude,
-                    latitude=order.latitude,
-                  
-                )
+        for admin in BotUser.admins.all():
+            text = Messages.NEW_ORDER.get(user.lang).format(
+                id=order.id,
+                uid=user.chat_id, 
+                user=user, 
+                contact=user.contact,
+                delivery_type=order.delivery_type,
+            )
 
-                bot.send_message(chat_id=admins.chat_id, text=text,
-                                    reply_markup=yes_or_no(order.id, admins))
+            bot.send_message(
+                chat_id=admin.chat_id,
+                text=text,
+                reply_markup=yes_or_no(order.id, admins)
+            )
 
-                bot.send_location(chat_id=admins.chat_id, latitude=order.latitude,
-                                        longitude=order.longitude)
+            bot.send_location(
+                chat_id=admins.chat_id,
+                latitude=order.latitude,
+                longitude=order.longitude
+            )
 
 
 def cook_keyboard(id, cook):

@@ -8,7 +8,7 @@ from telebot import types
 from backend.models import AboutBot, AboutShop, BotUser, Order
 from backend.templates import Keys, Messages
 
-from bot import products, commands, shopcard, profile, info
+from bot import products, commands, shopcard, profile, info, orders
 from bot.call_types import CallTypes
 from bot.states import States
 
@@ -43,34 +43,35 @@ def message_handler(message):
 
             if state == States.SEND_LOCATION:
                 if message.text == Keys.CANCEL.get(lang):
-                    print(message.text)
-                    user.bot_state = ''
+                    user.bot_state = None
                     user.save()
-                    commands.menu_command_handler(bot=bot, message=message)
+                    commands.menu_command_handler(bot, message)
                 else:
                     text = Messages.PLEASE_SEND_LOCATION.get(lang)
                     bot.send_message(chat_id, text)
 
-            if state == States.OPINION:
-                user.bot_state = ''
+            if state == States.WRITE_REVIEW:
+                user.bot_state = None
                 user.save()
-                info.review_message(bot=bot, message=message)
-            
+                if message.text == Keys.CANCEL.get(lang):
+                    commands.menu_command_handler(bot, message)
+                else:
+                    info.write_review_message_handler(bot, message)
+
             elif state == States.PROFILE_EDIT_FULL_NAME:
-                user.bot_state = ''
+                user.bot_state = None
                 user.save()
                 profile.profile_edit_full_name(bot, message, user)
 
             elif state == States.PROFILE_EDIT_CONTACT:
-                print(message.text[:5])
                 if (message.text[:5] == '+9989') or (message.text[:4] == '9989'):
                     user.bot_state = ''
                     user.save()
-                    print(11)
                     profile.profile_edit_contact_number(bot, message, user)
                 else:
                     text = Messages.PLEASE_CONTACT_NUMBER.get(lang)
                     bot.send_message(chat_id=chat_id, text=text)
+
             return
 
     for text, message_handler in message_handlers.items():
@@ -114,10 +115,17 @@ callback_query_handlers = {
     CallTypes.ShopContactsAndLocation:
         info.shop_contacts_and_location_call_handler,
     CallTypes.ShopReviews: info.shop_reviews_call_handler,
-    CallTypes.ShopMyReview: info.rating_message_handler,
-    CallTypes.RatingKey: info.rating_balls_call_handler,
-    CallTypes.YesOrNo: info.review_call_handler,
-    CallTypes.AboutBot: info.about_bot_call_handler
+    CallTypes.ShopMyReview: info.shop_my_review_call_handler,
+    CallTypes.ShopMyReviewChange: info.shop_my_review_change_call_handler,
+    CallTypes.ShopMyReviewDelete: info.shop_my_review_delete_call_handler,
+    CallTypes.ShopMyReviewRatingBall:
+        info.shop_my_review_rating_ball_call_handler,
+    CallTypes.WantWriteReview: info.want_write_review_call_handler,
+    CallTypes.AboutBot: info.about_bot_call_handler,
+
+    CallTypes.Orders: orders.orders_call_handler,
+    CallTypes.HistoryOrders: orders.history_orders_call_handler,
+    CallTypes.ReOrder: orders.reorder_call_handler,
 }
 
 
@@ -154,7 +162,8 @@ def contact_handler(message):
         lang = user.lang
 
         text = Messages.REGISTRATION_FINISHED.get(lang)
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,
+                                             one_time_keyboard=True)
         keyboard.add(Keys.MENU.get(lang))
         bot.delete_message(chat_id=chat_id, message_id=message.id-1)
         bot.send_message(chat_id, text,
@@ -174,7 +183,12 @@ def location_handler(message):
         order.latitude = latitude
         order.save()
 
-        shopcard.ordering_finish(bot, user, message,delivery_type=Order.DeliveryType.PAYMENT_DELIVERY )
+        shopcard.ordering_finish(
+            bot=bot,
+            user=user,
+            message=message,
+            delivery_type=Order.DeliveryType.PAYMENT_DELIVERY,
+        )
 
 
 if __name__ == "__main__":

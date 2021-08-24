@@ -5,6 +5,27 @@ from django.utils import timezone
 from tinymce.models import HTMLField
 
 
+class UserManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            type=BotUser.Type.USER,
+        )
+
+
+class AdminManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            type=BotUser.Type.ADMIN,
+        )
+
+
+class CookManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            type=BotUser.Type.COOK,
+        )
+
+
 class BotUser(models.Model):
     class Lang(models.TextChoices):
         UZ = 'uz'
@@ -16,6 +37,11 @@ class BotUser(models.Model):
         ADMIN = 'admin'
         COOK = 'cook'
         DRIVER = 'driver'
+
+    objects = models.Manager()
+    users = UserManager()
+    admins = AdminManager()
+    cooks = CookManager()
 
     type = models.CharField(
         max_length=10,
@@ -165,6 +191,7 @@ class AboutShop(models.Model):
         verbose_name = 'Malumot'
         verbose_name_plural = verbose_name + 'lar'
 
+
 class AboutBot(models.Model):
     title_uz = models.CharField(max_length=100, verbose_name='Nomi')
     title_ru = models.CharField(max_length=100, verbose_name='Название')
@@ -181,10 +208,13 @@ class AboutBot(models.Model):
         return getattr(self, f'description_{lang}')
 
 
-
 class Review(models.Model):
     reviews = models.Manager()
-    user = models.ForeignKey(BotUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        to=BotUser,
+        on_delete=models.CASCADE,
+        related_name='shop_review'
+    )
     rating = models.IntegerField()
     description = models.TextField()
 
@@ -220,6 +250,20 @@ class ShopCard(models.Model):
         return price
 
 
+class ActiveOrdersManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().exclude(
+            status__in=[Order.Status.CANCELED, Order.Status.COMPLETED]
+        )
+
+
+class FinishedOrdersManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            status__in=[Order.Status.CANCELED, Order.Status.COMPLETED]
+        )
+
+
 class Order(models.Model):
     class PaymentType(models.TextChoices):
         CASH = 'Cash'
@@ -237,6 +281,8 @@ class Order(models.Model):
         CANCELED = 'Canceled'
 
     orders = models.Manager()
+    active = ActiveOrdersManager()
+    finished = FinishedOrdersManager()
     user = models.ForeignKey(
         to=BotUser,
         on_delete=models.CASCADE,

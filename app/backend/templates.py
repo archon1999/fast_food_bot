@@ -25,13 +25,18 @@ class Keys():
     PAYMENT_DELIVERY = keys[15]
     SELF_CALL = keys[16]
     PROFILE_EDIT = keys[17]
-    YES_KEYBOARD = keys[18]
-    NO_KEYBOARD = keys[19]
+    YES = keys[18]
+    NO = keys[19]
     ABOUT_SHOP = keys[20]
     ABOUT_BOT = keys[21]
     SHOP_CONTACTS_AND_LOCATION = keys[22]
     SHOP_REVIEWS = keys[23]
     MY_REVIEW = keys[24]
+    CHANGE_REVIEW = keys[25]
+    WRITE_REVIEW = keys[26]
+    DELETE_REVIEW = keys[27]
+    HISTORY_ORDERS = keys[28]
+    REORDER = keys[29]
 
 
 class Messages():
@@ -58,7 +63,7 @@ class Messages():
     PROFILE_EDIT = messages[20]
     PROFILE_EDIT_FULLNAME = messages[21]
     SUCCES_FULL_NAME = messages[22]
-    RATING_MESSAGE = messages[23]
+    WANT_WRITE_REVIEW = messages[23]
     ABOUT_SHOP = messages[24]
     REVIEW = messages[25]
     RATING_EVALUATION = messages[26]
@@ -69,6 +74,11 @@ class Messages():
     SUCCES_CONTACT = messages[31]
     SEND_COOK_AND_DRIVER = messages[32]
     NOT_ACCEPTED_ORDER = messages[33]
+    NO_REVIEW = messages[34]
+    SHOP_MY_REVIEW_DELETED = messages[35]
+    ORDER = messages[36]
+    NO_ACTIVE_ORDERS = messages[37]
+    HISTORY_ORDERS_EMPTY = messages[38]
 
 
 class Smiles():

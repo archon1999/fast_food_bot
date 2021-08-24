@@ -38,8 +38,9 @@ class CallTypes():
 
     Products = CallTypeMeta('Products')
     ShopCard = CallTypeMeta('ShopCard')
-    Orders = CallTypeMeta('Orders')
+    Orders = CallTypeMeta('Orders', 'page__int')
     Profile = CallTypeMeta('Profile')
+    Info = CallTypeMeta('Info')
     Admin = CallTypeMeta('Admin')
 
     Category = CallTypeMeta('Category', 'category_id__int')
@@ -54,27 +55,28 @@ class CallTypes():
     PurchaseRemove = CallTypeMeta('PurchaseRemove', 'page__int')
     PurchaseBuy = CallTypeMeta('PurchaseBuy', 'page__int')
     PurchasesBuy = CallTypeMeta('PurchasesBuy')
+    ShopCardYes = CallTypeMeta('ShopCardYes', 'id__int', 'yes',)
+    ShopCardCookYes = CallTypeMeta('ShopCardCookYes', 'id__int', 'yes')
     DeliveryType = CallTypeMeta('DeliveryType', 'delivery_type')
 
     ProfileEdit = CallTypeMeta('ProfileEdit')
     ProfileEditFullName = CallTypeMeta('ProfileEditFullName')
     ProfileEditContact = CallTypeMeta('ProfileEditContact')
 
-    Info = CallTypeMeta('Info')
-
     AboutShop = CallTypeMeta('AboutShop')
     ShopContactsAndLocation = CallTypeMeta('ShopContactsAndLocation')
     ShopReviews = CallTypeMeta('ShopReviews', 'page__int')
     ShopMyReview = CallTypeMeta('ShopMyReview')
-    ShopCardYes = CallTypeMeta('ShopCardYes', 'id__int', 'yes',)
-    ShopCardCookYes = CallTypeMeta('ShopCardCookYes', 'id__int', 'yes')
-
-    RatingKey = CallTypeMeta('RatingKey', 'balls__int')
-
+    ShopMyReviewChange = CallTypeMeta('ShopMyReviewChange')
+    ShopMyReviewDelete = CallTypeMeta('ShopMyReviewDelete')
+    ShopMyReviewRatingBall = CallTypeMeta('ShopMyReviewRatingBall',
+                                          'ball__int')
+    WantWriteReview = CallTypeMeta('WantWriteReview', 'flag__int')
     AboutBot = CallTypeMeta('AboutBot')
 
-    YesOrNo = CallTypeMeta('YesOrNo', 'yes')
-    Ratings = CallTypeMeta('Ratings', 'balls')
+    HistoryOrders = CallTypeMeta('HistoryOrders', 'page__int')
+    ReOrder = CallTypeMeta('ReOrder', 'order_id__int')
+
     Nothing = CallTypeMeta('Nothing')
 
     @classmethod

@@ -87,6 +87,7 @@ def menu_command_handler(bot: telebot.TeleBot, message):
     orders_button = utils.make_inline_button(
         text=Keys.ORDERS.get(lang),
         CallType=CallTypes.Orders,
+        page=1,
     )
     profile_button = utils.make_inline_button(
         text=Keys.PROFILE.get(lang),
