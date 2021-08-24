@@ -339,14 +339,14 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
 def yes_or_no(id, admins):
     button = [
         utils.make_inline_button(
-            text=Keys.YES_KEYBOARD.get(admins.lang),
+            text=Keys.YES.get(admins.lang),
             CallType=CallTypes.ShopCardYes,
             id=id,
             yes='yes',
             # userid=admins.chat_id
         ),
         utils.make_inline_button(
-            text=Keys.NO_KEYBOARD.get(admins.lang),
+            text=Keys.NO.get(admins.lang),
             CallType=CallTypes.ShopCardYes,
             id=id,
             yes='no',
@@ -376,16 +376,18 @@ def ordering_finish(bot: telebot.TeleBot, message, user, delivery_type):
                 user=user, 
                 contact=user.contact,
                 delivery_type=order.delivery_type,
+                longitude=order.longitude,
+                latitude=order.latitude,
             )
 
             bot.send_message(
                 chat_id=admin.chat_id,
                 text=text,
-                reply_markup=yes_or_no(order.id, admins)
+                reply_markup=yes_or_no(order.id, admin)
             )
 
             bot.send_location(
-                chat_id=admins.chat_id,
+                chat_id=admin.chat_id,
                 latitude=order.latitude,
                 longitude=order.longitude
             )
@@ -394,13 +396,13 @@ def ordering_finish(bot: telebot.TeleBot, message, user, delivery_type):
 def cook_keyboard(id, cook):
     button = [
         utils.make_inline_button(
-            text=Keys.YES_KEYBOARD.get(cook.lang),
+            text=Keys.YES.get(cook.lang),
             CallType=CallTypes.ShopCardCookYes,
             id=id,
             yes='yes',
         ),
         utils.make_inline_button(
-            text=Keys.NO_KEYBOARD.get(cook.lang),
+            text=Keys.NO.get(cook.lang),
             CallType=CallTypes.ShopCardCookYes,
             id=id,
             yes='no',
@@ -412,11 +414,13 @@ def cook_keyboard(id, cook):
 
 def shop_card_yes_or_no(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
-    
     chat_id = call.message.chat.id
     order = Order.orders.get(id=call_type.id)
     user= BotUser.objects.get(chat_id=chat_id)
     if call_type.yes == 'yes':
+        order = Order.orders.get(id=call_type.id)
+        order.status = Order.Status.PROCESSED
+        order.save()
         text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
         bot.send_message(chat_id=chat_id, text=text)
         commands.menu_command_handler(bot, call.message)
@@ -435,6 +439,9 @@ def shop_card_yes_or_no(bot: telebot.TeleBot, call):
                                     reply_markup=cook_keyboard(call_type.id, cook))
 
     else:
+        order = Order.orders.get(id=call_type.id)
+        order.status = Order.Status.CANCELED
+        order.save()
         text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
         bot.send_message(chat_id=order.user.chat_id, text=text)
         commands.menu_command_handler(bot, call.message)
@@ -446,6 +453,9 @@ def shopcard_cook_call_handler(bot: telebot.TeleBot, call):
     user= BotUser.objects.get(chat_id=chat_id)
     print(call_type)
     if call_type.yes == 'yes':
+        order = Order.orders.get(id=call_type.id)
+        order.status = Order.Status.COMPLETED
+        order.save()
         text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
         bot.send_message(chat_id=chat_id, text=text)
         commands.menu_command_handler(bot, call.message)

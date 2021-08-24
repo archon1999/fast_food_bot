@@ -39,7 +39,7 @@ def text_to_double_line(text: str) -> str:
     new_text = '\n———————————————————'
     new_text += '\n\n'
     new_text += text
-    new_text += '———————————————————'
+    new_text += '\n———————————————————'
     new_text += '\n\n'
     return new_text
 
