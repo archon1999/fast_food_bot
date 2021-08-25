@@ -5,8 +5,8 @@ import config
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Order, AdminPanel
-from backend.templates import Messages, Smiles, Keys
+from backend.models import BotUser, AdminPanel
+from backend.templates import Messages, Keys
 from bot import utils
 from bot.call_types import CallTypes
 
@@ -55,7 +55,9 @@ def admin_on_off_call_handler(bot: telebot.TeleBot, call):
         utils.make_inline_button(
             text=Keys.ON.get(user.lang),
             CallType=CallTypes.CookOnOFF,
-            id=1
+            id=1,
+            status = States.COOK,
+            difference=States.COOK
         )
     ]
     
@@ -67,10 +69,12 @@ def admin_on_off_call_handler(bot: telebot.TeleBot, call):
         utils.make_inline_button(
             text=Keys.ON.get(user.lang),
             CallType=CallTypes.DriverOnOFF,
-            id=1
+            id=1,
+            status=States.DRIVER,
+            difference=States.DRIVER
         )
     ]
-    
+
     if panel.cook == States.COOK:
         cook = Messages.ON.get(user.lang)
         cook_button = [
@@ -81,12 +85,12 @@ def admin_on_off_call_handler(bot: telebot.TeleBot, call):
             utils.make_inline_button(
                 text=Keys.OFF.get(user.lang),
                 CallType=CallTypes.CookOnOFF,
-                id=0
+                id=0,
+                status='',
+                difference=States.COOK
             )
         ]
-    
         if panel.driver == States.DRIVER:
-            print(2)
             driver = Messages.ON.get(user.lang)
             driver_button = [
                 utils.make_inline_button(
@@ -96,9 +100,27 @@ def admin_on_off_call_handler(bot: telebot.TeleBot, call):
                 utils.make_inline_button(
                     text=Keys.OFF.get(user.lang),
                     CallType=CallTypes.DriverOnOFF,
-                    id=0
+                    id=0,
+                    status='',
+                    difference=States.DRIVER
                 )
             ]
+    if panel.driver == States.DRIVER:
+        print(2)
+        driver = Messages.ON.get(user.lang)
+        driver_button = [
+            utils.make_inline_button(
+                text=Keys.DRIVER.get(user.lang),
+                CallType=CallTypes.Nothing
+            ),
+            utils.make_inline_button(
+                text=Keys.OFF.get(user.lang),
+                CallType=CallTypes.DriverOnOFF,
+                id=0,
+                status='',
+                difference=States.DRIVER
+            )
+        ]
     
     back_button = utils.make_inline_button(
         text=Keys.BACK.get(user.lang),
@@ -116,19 +138,28 @@ def admin_on_off_call_handler(bot: telebot.TeleBot, call):
 
 def admin_cook_on_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
+    print(call_type)
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     panel = AdminPanel.objects.get(id=1)
     if call_type.id == 1:
-        panel.cook = States.COOK
-        panel.save()
+        if call_type.difference == States.COOK:
+            panel.cook = call_type.status
+            panel.save()
+        else:
+            panel.driver = call_type.status
+            panel.save()
         text = Messages.CHANGE.get(user.lang)
         bot.answer_callback_query(callback_query_id=call.id, text=text,
                                     show_alert=True)
         admin_on_off_call_handler(bot=bot, call=call)
     else:
-        panel.cook = ''
-        panel.save()
+        if call_type.difference == States.COOK:
+            panel.cook = call_type.status
+            panel.save()
+        else:
+            panel.driver = call_type.status
+            panel.save()
         text = Messages.CHANGE.get(user.lang)
         bot.answer_callback_query(callback_query_id=call.id, text=text,
                                     show_alert=True)

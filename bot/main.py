@@ -128,6 +128,7 @@ callback_query_handlers = {
     CallTypes.Admin: admin.admin_call_handler,
     CallTypes.OnOff: admin.admin_on_off_call_handler,
     CallTypes.CookOnOFF: admin.admin_cook_on_call_handler,
+    CallTypes.DriverOnOFF: admin.admin_cook_on_call_handler,
 }
 
 

@@ -4,7 +4,7 @@ import config
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Product, Order
+from backend.models import BotUser, Product, Order, AdminPanel, AboutShop
 from backend.templates import Messages, Smiles, Keys
 
 from bot import utils, commands
@@ -273,14 +273,17 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder):
         CallType=CallTypes.DeliveryType,
         delivery_type=Order.DeliveryType.SELF_CALL,
     )
-    payment_delivery_button = utils.make_inline_button(
-        text=Keys.PAYMENT_DELIVERY.get(lang),
-        CallType=CallTypes.DeliveryType,
-        delivery_type=Order.DeliveryType.PAYMENT_DELIVERY,
-    )
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(self_call_button)
-    keyboard.add(payment_delivery_button)
+
+    panel = AdminPanel.objects.get(id=1)
+    if panel.driver == States.DRIVER:
+        payment_delivery_button = utils.make_inline_button(
+            text=Keys.PAYMENT_DELIVERY.get(lang),
+            CallType=CallTypes.DeliveryType,
+            delivery_type=Order.DeliveryType.PAYMENT_DELIVERY,
+        )
+        keyboard.add(payment_delivery_button)
     text = Messages.CHOOSE_DELIVERY_TYPE.get(lang)
     bot.send_message(chat_id, text,
                      reply_markup=keyboard)
@@ -338,22 +341,37 @@ def delivery_type_call_handler(bot: telebot.TeleBot, call):
 
 
 def yes_or_no(id, admins):
-    button = [
-        utils.make_inline_button(
-            text=Keys.YES.get(admins.lang),
-            CallType=CallTypes.ShopCardYes,
-            id=id,
-            yes='yes',
-            # userid=admins.chat_id
-        ),
-        utils.make_inline_button(
-            text=Keys.NO.get(admins.lang),
-            CallType=CallTypes.ShopCardYes,
-            id=id,
-            yes='no',
-            # userid=admins.chat_id
-        )
-    ]
+    panel = AdminPanel.objects.get(id=1)
+    if panel.cook == States.COOK:
+        button = [
+            utils.make_inline_button(
+                text=Keys.YES.get(admins.lang),
+                CallType=CallTypes.ShopCardYes,
+                id=id,
+                yes='yes',\
+            ),
+            utils.make_inline_button(
+                text=Keys.NO.get(admins.lang),
+                CallType=CallTypes.ShopCardYes,
+                id=id,
+                yes='no',
+            )
+        ]
+    else:
+        button = [
+            utils.make_inline_button(
+                text=Keys.YES.get(admins.lang),
+                CallType=CallTypes.ShopCardCookYes,
+                id=id,
+                yes='yes',
+            ),
+            utils.make_inline_button(
+                text=Keys.NO.get(admins.lang),
+                CallType=CallTypes.ShopCardCookYes,
+                id=id,
+                yes='no',
+            )
+        ]
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(*button)
     return keyboard
@@ -371,27 +389,39 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     bot.send_message(chat_id=user.chat_id, text=text)
     commands.menu_command_handler(bot=bot, message=message)
     for admin in BotUser.admins.all():
-        text = Messages.NEW_ORDER.get(user.lang).format(
-            id=order.id,
-            uid=user.chat_id,
-            user=user,
-            contact=user.contact,
-            delivery_type=order.get_trans_status(user.lang),
-        )
-
-        bot.send_message(
-            chat_id=admin.chat_id,
-            text=text,
-            reply_markup=yes_or_no(order.id, admin)
-        )
         if order.delivery_type == Order.DeliveryType.PAYMENT_DELIVERY:
             bot.send_location(
                 chat_id=admin.chat_id,
                 latitude=order.latitude,
                 longitude=order.longitude
             )
+            text = Messages.NEW_ORDER.get(user.lang).format(
+                id=order.id,
+                uid=user.chat_id,
+                user=user,
+                contact=user.contact,
+                delivery_type=order.get_trans_status(user.lang),
+            )
 
+            bot.send_message(
+                chat_id=admin.chat_id,
+                text=text,
+                reply_markup=yes_or_no(order.id, admin)
+            )
+        else:
 
+            text = Messages.NEW_ORDER.get(user.lang).format(
+                id=order.id,
+                uid=user.chat_id,
+                user=user,
+                contact=user.contact,
+                delivery_type=order.get_trans_status(user.lang),
+            )
+            bot.send_message(
+                chat_id=admin.chat_id,
+                text=text,
+                # reply_markup=yes_or_no(order.id, admin)
+            )
 def cook_keyboard(id, cook):
     button = [
         utils.make_inline_button(

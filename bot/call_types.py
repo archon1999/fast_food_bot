@@ -81,8 +81,8 @@ class CallTypes():
     Statics = CallTypeMeta('Statics')
     OrderAdmin = CallTypeMeta('OrderAdmin')
 
-    CookOnOFF = CallTypeMeta('CookOnOFF', 'id__int')
-    DriverOnOFF = CallTypeMeta('DriverOnOFF', 'id__int')
+    CookOnOFF = CallTypeMeta('CookOnOFF', 'id__int', 'status', 'difference')
+    DriverOnOFF = CallTypeMeta('DriverOnOFF', 'id__int', 'status', 'difference')
 
     Nothing = CallTypeMeta('Nothing')
 
