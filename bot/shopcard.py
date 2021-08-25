@@ -12,7 +12,6 @@ from bot.call_types import CallTypes
 from bot.states import States
 
 
-def (status, lang: str):
     
 def get_purchases_info(purchases, lang):
     all_purchases_info = str()
@@ -377,7 +376,7 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
             uid=user.chat_id,
             user=user,
             contact=user.contact,
-            delivery_type=order.delivery_type,
+            delivery_type=order.get_trans_status(user.lang),
         )
 
         bot.send_message(
@@ -430,7 +429,7 @@ def shop_card_yes_or_no(bot: telebot.TeleBot, call):
                     uid=order.user.chat_id, 
                     user=order.user, 
                     contact=order.user.contact,
-                    delivery_type=order.delivery_type,
+                    delivery_type=order.get_trans_status(cook.lang),
                     longitude=order.longitude,
                     latitude=order.latitude, 
                 )
@@ -440,7 +439,7 @@ def shop_card_yes_or_no(bot: telebot.TeleBot, call):
 
     else:
         order = Order.orders.get(id=call_type.id)
-        order.status = Order.Status.CANCELED
+        order.status = order.get_trans_status(user.lang)
         order.save()
         text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
         bot.send_message(chat_id=order.user.chat_id, text=text)
@@ -465,7 +464,7 @@ def shopcard_cook_call_handler(bot: telebot.TeleBot, call):
                     uid=order.user.chat_id, 
                     user=order.user, 
                     contact=order.user.contact,
-                    delivery_type=order.delivery_type,
+                    delivery_type=order.get_trans_status(driver.lang),
                     longitude=order.longitude,
                     latitude=order.latitude, 
                 )

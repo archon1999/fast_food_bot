@@ -5,3 +5,5 @@ class States():
     WRITE_REVIEW = 'write review'
     PROFILE_EDIT_FULL_NAME = 'profile edit full_name'
     PROFILE_EDIT_CONTACT = 'profile edit contact'
+    COOK = 'cook on'
+    DRIVER = 'driver on'

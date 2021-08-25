@@ -37,6 +37,12 @@ class Keys():
     DELETE_REVIEW = keys[27]
     HISTORY_ORDERS = keys[28]
     REORDER = keys[29]
+    STATISTIKA = keys[30]
+    ON_OFF = keys[31]
+    ON = keys[32]
+    OFF = keys[33]
+    COOK = keys[34]
+    DRIVER = keys[35]
 
 
 class Messages():
@@ -86,6 +92,11 @@ class Messages():
     COMPLETED = messages[43]
     CASH = messages[44]
     PAYME = messages[45]
+    ADMIN_MENU = messages[46]
+    ON = messages[47]
+    OFF = messages[48]
+    ADMIN_ON_OF_CALL = messages[49]
+    CHANGE = messages[50]
 
 
 class Smiles():

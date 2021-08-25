@@ -84,6 +84,10 @@ class BotUser(models.Model):
         return self.full_name
 
 
+class AdminPanel(models.Model):
+    cook = models.CharField(max_length=50)
+    driver = models.CharField(max_length=50)
+
 class Category(models.Model):
     categories = models.Manager()
     name_uz = models.CharField(max_length=100, verbose_name='Nomi')

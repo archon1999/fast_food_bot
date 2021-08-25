@@ -6,7 +6,7 @@ from telebot import types
 from backend.models import BotUser, Order
 from backend.templates import Keys, Messages
 
-from bot import products, commands, shopcard, profile, info, orders
+from bot import products, commands, shopcard, profile, info, orders, admin
 from bot.call_types import CallTypes
 from bot.states import States
 
@@ -124,6 +124,10 @@ callback_query_handlers = {
     CallTypes.Orders: orders.orders_call_handler,
     CallTypes.HistoryOrders: orders.history_orders_call_handler,
     CallTypes.ReOrder: orders.reorder_call_handler,
+
+    CallTypes.Admin: admin.admin_call_handler,
+    CallTypes.OnOff: admin.admin_on_off_call_handler,
+    CallTypes.CookOnOFF: admin.admin_cook_on_call_handler,
 }
 
 

@@ -38,12 +38,12 @@ def orders_call_handler(bot: TeleBot, call):
         keyboard.add(back_button)
     else:
         order = orders[page_number-1]
-        purchases_info = get_purchases_info(order.purchases.all(), lang)
+        purchases_info = get_purchases_info(order.purchases.all().reverse(), lang)
         order_info = Messages.ORDER.get(lang).format(
             id=order.id,
             created=utils.datetime_to_utc5_str(order.created),
             updated=utils.datetime_to_utc5_str(order.updated),
-            status=order.status,
+            status=order.get_trans_status(lang),
             delivery_type=order.delivery_type,
             purchases_info=purchases_info,
         )
@@ -89,12 +89,12 @@ def history_orders_call_handler(bot: telebot.TeleBot, call):
         return
 
     order = orders[page_number-1]
-    purchases_info = get_purchases_info(order.purchases.all(), lang)
+    purchases_info = get_purchases_info(order.purchases.all().reverse(), lang)
     order_info = Messages.ORDER.get(lang).format(
         id=order.id,
         created=utils.datetime_to_utc5_str(order.created),
         updated=utils.datetime_to_utc5_str(order.updated),
-        status=order.status,
+        status=order.get_trans_status(lang),
         delivery_type=order.delivery_type,
         purchases_info=purchases_info,
     )
@@ -126,6 +126,6 @@ def reorder_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
     order_id = call_type.order_id
     order = Order.orders.get(id=order_id)
-    purchases = order.purchases.all()
+    purchases = order.purchases.all().reverse()
 
     ordering_start(bot, user, purchases, True)

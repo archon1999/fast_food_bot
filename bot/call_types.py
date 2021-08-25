@@ -77,6 +77,13 @@ class CallTypes():
     HistoryOrders = CallTypeMeta('HistoryOrders', 'page__int')
     ReOrder = CallTypeMeta('ReOrder', 'order_id__int')
 
+    OnOff = CallTypeMeta('OnOff')
+    Statics = CallTypeMeta('Statics')
+    OrderAdmin = CallTypeMeta('OrderAdmin')
+
+    CookOnOFF = CallTypeMeta('CookOnOFF', 'id__int')
+    DriverOnOFF = CallTypeMeta('DriverOnOFF', 'id__int')
+
     Nothing = CallTypeMeta('Nothing')
 
     @classmethod

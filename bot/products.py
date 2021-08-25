@@ -36,7 +36,7 @@ def make_subcategory_buttons(parent: Category, lang: str):
     else:
         if parent:
             back_button = utils.make_inline_button(
-                text=Keys.PRODUCTS.get(lang),
+                text=Keys.MENU.get(lang),
                 CallType=CallTypes.Products,
             )
         else:
