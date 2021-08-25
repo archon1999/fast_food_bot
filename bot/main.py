@@ -1,11 +1,9 @@
-
-from os import stat
 import config
 
 import telebot
 from telebot import types
 
-from backend.models import AboutBot, AboutShop, BotUser, Order
+from backend.models import BotUser, Order
 from backend.templates import Keys, Messages
 
 from bot import products, commands, shopcard, profile, info, orders
@@ -192,5 +190,5 @@ def location_handler(message):
 
 
 if __name__ == "__main__":
-    bot.polling()
-    # bot.infinity_polling()
+    # bot.polling()
+    bot.infinity_polling()

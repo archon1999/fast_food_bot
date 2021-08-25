@@ -358,34 +358,32 @@ def yes_or_no(id, admins):
     return keyboard
 
 
-def ordering_finish(bot: telebot.TeleBot, message, user, delivery_type):
+def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
     order.delivery_type = delivery_type
     order.status = Order.Status.IN_QUEUE
     order.save()
     user.bot_state = None
     user.save()
-    if order.DeliveryType.PAYMENT_DELIVERY == Order.DeliveryType.PAYMENT_DELIVERY:
-        text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
-        bot.send_message(chat_id=user.chat_id, text=text)
-        commands.menu_command_handler(bot=bot, message=message)
-        for admin in BotUser.admins.all():
-            text = Messages.NEW_ORDER.get(user.lang).format(
-                id=order.id,
-                uid=user.chat_id, 
-                user=user, 
-                contact=user.contact,
-                delivery_type=order.delivery_type,
-                longitude=order.longitude,
-                latitude=order.latitude,
-            )
 
-            bot.send_message(
-                chat_id=admin.chat_id,
-                text=text,
-                reply_markup=yes_or_no(order.id, admin)
-            )
+    text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
+    bot.send_message(chat_id=user.chat_id, text=text)
+    commands.menu_command_handler(bot=bot, message=message)
+    for admin in BotUser.admins.all():
+        text = Messages.NEW_ORDER.get(user.lang).format(
+            id=order.id,
+            uid=user.chat_id,
+            user=user,
+            contact=user.contact,
+            delivery_type=order.delivery_type,
+        )
 
+        bot.send_message(
+            chat_id=admin.chat_id,
+            text=text,
+            reply_markup=yes_or_no(order.id, admin)
+        )
+        if order.delivery_type == Order.DeliveryType.PAYMENT_DELIVERY:
             bot.send_location(
                 chat_id=admin.chat_id,
                 latitude=order.latitude,

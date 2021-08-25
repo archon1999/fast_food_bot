@@ -74,12 +74,17 @@ def products_call_handler(bot: telebot.TeleBot, call):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     buttons = make_subcategory_buttons(None, lang)
     keyboard.add(*buttons)
-    bot.edit_message_text(
-        text=text,
-        chat_id=chat_id,
-        message_id=call.message.id,
-        reply_markup=keyboard,
-    )
+    if call.message.content_type == 'photo':
+        bot.send_message(chat_id, text,
+                         reply_markup=keyboard)
+        bot.delete_message(chat_id, call.message.id)
+    else:
+        bot.edit_message_text(
+            text=text,
+            chat_id=chat_id,
+            message_id=call.message.id,
+            reply_markup=keyboard,
+        )
 
 
 def category_call_handler(bot: telebot.TeleBot, call):
@@ -249,7 +254,7 @@ def make_product_keyboard(category: Category, page: int, lang: str):
     )
     back_button = utils.make_inline_button(
         text=Keys.BACK.get(lang),
-        CallType=CallTypes.Back,
+        CallType=CallTypes.Products,
     )
 
     keyboard = types.InlineKeyboardMarkup(row_width=5)

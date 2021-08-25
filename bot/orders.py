@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from backend.models import BotUser, Order
 from backend.templates import Messages, Smiles, Keys
 
-from bot import utils, commands
+from bot import utils
 from bot.call_types import CallTypes
 from bot.shopcard import get_purchases_info, ordering_start
 
@@ -21,7 +21,7 @@ def orders_call_handler(bot: TeleBot, call):
     user = BotUser.objects.get(chat_id=chat_id)
     lang = user.lang
 
-    orders = user.orders(manager='active').all()
+    orders = user.orders(manager='active').all().reverse()
     history_orders_button = utils.make_inline_button(
         text=Keys.HISTORY_ORDERS.get(lang),
         CallType=CallTypes.HistoryOrders,
@@ -71,7 +71,7 @@ def history_orders_call_handler(bot: telebot.TeleBot, call):
     user = BotUser.objects.get(chat_id=chat_id)
     lang = user.lang
 
-    orders = user.orders(manager='finished').all()
+    orders = user.orders(manager='finished').all().reverse()
     back_button = utils.make_inline_button(
         text=Keys.BACK.get(lang),
         CallType=CallTypes.Orders,
