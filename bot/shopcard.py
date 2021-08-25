@@ -12,6 +12,8 @@ from bot.call_types import CallTypes
 from bot.states import States
 
 
+def (status, lang: str):
+    
 def get_purchases_info(purchases, lang):
     all_purchases_info = str()
     purchases_price = 0

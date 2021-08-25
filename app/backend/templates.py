@@ -79,6 +79,13 @@ class Messages():
     ORDER = messages[36]
     NO_ACTIVE_ORDERS = messages[37]
     HISTORY_ORDERS_EMPTY = messages[38]
+    IN_QUEUE = messages[39]
+    RESERVED = messages[40]
+    PROCESSED = messages[41]
+    CANCELED = messages[42]
+    COMPLETED = messages[43]
+    CASH = messages[44]
+    PAYME = messages[45]
 
 
 class Smiles():

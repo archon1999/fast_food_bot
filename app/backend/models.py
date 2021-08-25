@@ -5,6 +5,10 @@ from django.utils import timezone
 from tinymce.models import HTMLField
 
 
+def to_upper_underscore(text):
+    return text.upper().replace(' ', '_')
+
+
 class UserManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(
@@ -306,6 +310,14 @@ class Order(models.Model):
     purchases = models.ManyToManyField(Purchase)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    def get_trans_status(self, lang: str):
+        status = to_upper_underscore(self.status)
+        return Template.messages.get(title=status).get(lang)
+
+    def get_trans_delivery_type(self, lang: str):
+        delivery_type = to_upper_underscore(self.delivery_type)
+        return Template.messages.get(title=delivery_type).get(lang)
 
     def __str__(self):
         return str(self.purchases)
