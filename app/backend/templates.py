@@ -97,6 +97,7 @@ class Messages():
     OFF = messages[48]
     ADMIN_ON_OF_CALL = messages[49]
     CHANGE = messages[50]
+    STATICS_MESSAGE = messages[51]
 
 
 class Smiles():

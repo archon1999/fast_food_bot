@@ -19,4 +19,4 @@ sys.path.append(APP_DIR_PATH)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 django.setup()
 
-TOKEN = '1318744864:AAHCsxjj-J9KgSgw1psQXoh9OcOAmSpmOT4'
+TOKEN = '1674764070:AAED1K_oqqJn1C-aBNslrUqMuPNUKCHhCm8'

@@ -10,10 +10,8 @@ from backend.templates import Messages, Keys
 from bot import utils
 from bot.call_types import CallTypes
 
-def admin_call_handler(bot: telebot.TeleBot, call):
-    chat_id = call.message.chat.id
-    user = BotUser.objects.get(chat_id=chat_id)
-    lang = user.lang
+
+def admin_keyboard(lang):
     button = [
         utils.make_inline_button(
             text=Keys.ON_OFF.get(lang),
@@ -35,6 +33,14 @@ def admin_call_handler(bot: telebot.TeleBot, call):
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     keyboard.add(*button)
     keyboard.add(back_button)
+    return keyboard
+
+
+def admin_call_handler(bot: telebot.TeleBot, call):
+    chat_id = call.message.chat.id
+    user = BotUser.objects.get(chat_id=chat_id)
+    lang = user.lang
+    keyboard = admin_keyboard(lang)
     text = Messages.ADMIN_MENU.get(lang)
     bot.edit_message_text(text=text, chat_id=chat_id,
                             message_id=call.message.id, reply_markup=keyboard)

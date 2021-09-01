@@ -348,7 +348,7 @@ def yes_or_no(id, admins):
                 text=Keys.YES.get(admins.lang),
                 CallType=CallTypes.ShopCardYes,
                 id=id,
-                yes='yes',\
+                yes='yes',
             ),
             utils.make_inline_button(
                 text=Keys.NO.get(admins.lang),
@@ -472,8 +472,11 @@ def shop_card_yes_or_no(bot: telebot.TeleBot, call):
         order.status = order.get_trans_status(user.lang)
         order.save()
         text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
+        bot.delete_message(chat_id=chat_id, message_id=call.message.id-1)
+        bot.delete_message(chat_id=chat_id, message_id=call.message.id)
         bot.send_message(chat_id=order.user.chat_id, text=text)
         commands.menu_command_handler(bot, call.message)
+        
          
 def shopcard_cook_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
