@@ -98,6 +98,8 @@ class Messages():
     ADMIN_ON_OF_CALL = messages[49]
     CHANGE = messages[50]
     STATICS_MESSAGE = messages[51]
+    SELF_CALL = messages[52]
+    PAYMENT_DELIVERY = messages[53]
 
 
 class Smiles():

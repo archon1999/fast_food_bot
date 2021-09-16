@@ -16,12 +16,14 @@ from bot.states import States
 def get_purchases_info(purchases, lang):
     all_purchases_info = str()
     purchases_price = 0
+    print(purchases.count())
     for purchase in purchases:
         purchase_info = Messages.PURCHASE_INFO.get(lang).format(
             product_title=purchase.product.get_title(lang),
             count=purchase.count,
             price=purchase.price,
         )
+        print(purchase_info)
         purchases_price += purchase.price
         all_purchases_info += purchase_info + '\n'
 
@@ -29,6 +31,7 @@ def get_purchases_info(purchases, lang):
         all_purchases_info=all_purchases_info,
         purchases_price=purchases_price,
     )
+    print('------------------')
     return purchases_info
 
 
@@ -257,6 +260,7 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder):
         status=Order.Status.RESERVED,
     )
     order.purchases.set(purchases)
+    panel = AdminPanel.objects.get(id=1)
 
     if not reorder:
         for purchase in purchases:
@@ -276,7 +280,6 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder):
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(self_call_button)
 
-    panel = AdminPanel.objects.get(id=1)
     if panel.driver == States.DRIVER:
         payment_delivery_button = utils.make_inline_button(
             text=Keys.PAYMENT_DELIVERY.get(lang),
@@ -376,6 +379,24 @@ def yes_or_no(id, admins):
     keyboard.add(*button)
     return keyboard
 
+def self_call_keyboard(id, lang):
+    button = [
+        utils.make_inline_button(
+            text=Keys.YES.get(lang),
+            CallType=CallTypes.SELFCALL,
+            id=id,
+            yes='yes'
+        ),
+        utils.make_inline_button(
+            text=Keys.NO.get(lang),
+            CallType=CallTypes.SELFCALL,
+            id=id,
+            yes='no'
+        )
+    ]
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    keyboard.add(*button)
+    return keyboard
 
 def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
@@ -390,6 +411,12 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     commands.menu_command_handler(bot=bot, message=message)
     for admin in BotUser.admins.all():
         if order.delivery_type == Order.DeliveryType.PAYMENT_DELIVERY:
+            shop_card = user.shop_card
+            purchases = shop_card.purchases.all()
+            text = get_purchases_info(purchases, user.lang)
+            print(text)
+            print('--------------------------------')
+
             bot.send_location(
                 chat_id=admin.chat_id,
                 latitude=order.latitude,
@@ -401,6 +428,7 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
                 user=user,
                 contact=user.contact,
                 delivery_type=order.get_trans_status(user.lang),
+                text=text
             )
 
             bot.send_message(
@@ -415,13 +443,14 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
                 uid=user.chat_id,
                 user=user,
                 contact=user.contact,
-                delivery_type=order.get_trans_status(user.lang),
+                delivery_type=order.get_trans_delivery_type(user.lang),
             )
             bot.send_message(
                 chat_id=admin.chat_id,
                 text=text,
-                # reply_markup=yes_or_no(order.id, admin)
+                reply_markup=self_call_keyboard(order.id, user.lang)
             )
+            
 def cook_keyboard(id, cook):
     button = [
         utils.make_inline_button(

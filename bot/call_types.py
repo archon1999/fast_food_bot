@@ -58,7 +58,7 @@ class CallTypes():
     ShopCardYes = CallTypeMeta('ShopCardYes', 'id__int', 'yes',)
     ShopCardCookYes = CallTypeMeta('ShopCardCookYes', 'id__int', 'yes')
     DeliveryType = CallTypeMeta('DeliveryType', 'delivery_type')
-
+    SELFCALL = CallTypeMeta('SELFCALL', 'id__int', 'yes')
     ProfileEdit = CallTypeMeta('ProfileEdit')
     ProfileEditFullName = CallTypeMeta('ProfileEditFullName')
     ProfileEditContact = CallTypeMeta('ProfileEditContact')
@@ -83,6 +83,7 @@ class CallTypes():
 
     CookOnOFF = CallTypeMeta('CookOnOFF', 'id__int', 'status', 'difference')
     DriverOnOFF = CallTypeMeta('DriverOnOFF', 'id__int', 'status', 'difference')
+
 
 
     Nothing = CallTypeMeta('Nothing')
