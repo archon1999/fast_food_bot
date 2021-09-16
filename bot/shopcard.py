@@ -4,7 +4,7 @@ import config
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Product, Order, AdminPanel, AboutShop
+from backend.models import BotUser, Product, Order, AdminPanel
 from backend.templates import Messages, Smiles, Keys
 
 from bot import utils, commands
@@ -12,18 +12,15 @@ from bot.call_types import CallTypes
 from bot.states import States
 
 
-    
 def get_purchases_info(purchases, lang):
     all_purchases_info = str()
     purchases_price = 0
-    print(purchases.count())
     for purchase in purchases:
         purchase_info = Messages.PURCHASE_INFO.get(lang).format(
             product_title=purchase.product.get_title(lang),
             count=purchase.count,
             price=purchase.price,
         )
-        print(purchase_info)
         purchases_price += purchase.price
         all_purchases_info += purchase_info + '\n'
 
@@ -31,7 +28,6 @@ def get_purchases_info(purchases, lang):
         all_purchases_info=all_purchases_info,
         purchases_price=purchases_price,
     )
-    print('------------------')
     return purchases_info
 
 
@@ -379,6 +375,7 @@ def yes_or_no(id, admins):
     keyboard.add(*button)
     return keyboard
 
+
 def self_call_keyboard(id, lang):
     button = [
         utils.make_inline_button(
@@ -398,6 +395,7 @@ def self_call_keyboard(id, lang):
     keyboard.add(*button)
     return keyboard
 
+
 def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
     order.delivery_type = delivery_type
@@ -411,12 +409,8 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     commands.menu_command_handler(bot=bot, message=message)
     for admin in BotUser.admins.all():
         if order.delivery_type == Order.DeliveryType.PAYMENT_DELIVERY:
-            shop_card = user.shop_card
-            purchases = shop_card.purchases.all()
+            purchases = order.purchases.all()
             text = get_purchases_info(purchases, user.lang)
-            print(text)
-            print('--------------------------------')
-
             bot.send_location(
                 chat_id=admin.chat_id,
                 latitude=order.latitude,
