@@ -48,14 +48,14 @@ class CallTypes():
     ProductPage = CallTypeMeta('ProductPage', 'category_id__int',
                                'page__int')
     AddToShopCard = CallTypeMeta('AddToShopCard', 'product_id__int')
-
-    ShopCard = CallTypeMeta('ShopCard')
+    PricesProduct = CallTypeMeta('PricesProduct', 'product_id__int', 'price__int')
     PurchasePage = CallTypeMeta('PurchasePage', 'page__int')
     PurchaseCount = CallTypeMeta('PurchaseCount', 'page__int', 'count__int')
     PurchaseRemove = CallTypeMeta('PurchaseRemove', 'page__int')
     PurchaseBuy = CallTypeMeta('PurchaseBuy', 'page__int')
     PurchasesBuy = CallTypeMeta('PurchasesBuy')
     ShopCardYes = CallTypeMeta('ShopCardYes', 'id__int', 'yes',)
+    ShopCardDriver = CallTypeMeta('ShopCardDriver', 'id__int')
     ShopCardCookYes = CallTypeMeta('ShopCardCookYes', 'id__int', 'yes')
     DeliveryType = CallTypeMeta('DeliveryType', 'delivery_type')
     SELFCALL = CallTypeMeta('SELFCALL', 'id__int', 'yes')

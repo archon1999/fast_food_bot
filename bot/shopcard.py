@@ -4,7 +4,7 @@ import config
 import telebot
 from telebot import types
 
-from backend.models import BotUser, Product, Order, AdminPanel
+from backend.models import BotUser, Prices, Product, Order, AdminPanel
 from backend.templates import Messages, Smiles, Keys
 
 from bot import utils, commands
@@ -19,9 +19,9 @@ def get_purchases_info(purchases, lang):
         purchase_info = Messages.PURCHASE_INFO.get(lang).format(
             product_title=purchase.product.get_title(lang),
             count=purchase.count,
-            price=purchase.price,
+            price=purchase.all_price,
         )
-        purchases_price += purchase.price
+        purchases_price += purchase.all_price
         all_purchases_info += purchase_info + '\n'
 
     purchases_info = Messages.PURCHASES_INFO.get(lang).format(
@@ -30,7 +30,7 @@ def get_purchases_info(purchases, lang):
     )
     return purchases_info
 
-
+    
 def shop_card_call_handler(bot: telebot.TeleBot, call):
     chat_id = call.message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
@@ -67,6 +67,7 @@ def shop_card_call_handler(bot: telebot.TeleBot, call):
     keyboard.add(buy_all_button)
     keyboard.add(back_button)
     if call.message.content_type == 'photo':
+        bot.delete_message(chat_id, message_id=call.message.id)
         bot.send_message(chat_id, text,
                          reply_markup=keyboard)
     else:
@@ -79,10 +80,14 @@ def shop_card_call_handler(bot: telebot.TeleBot, call):
 
 
 def get_product_info(product: Product, lang: str):
+    price = Prices.objects.filter(product=product)
+    price_text = str()
+    for i in price:
+        price_text += f'{i.get(lang)} - {i.price} So`m\n\n'
+
     return Messages.PRODUCT_INFO.get(lang).format(
-        id=product.id,
         title=product.get_title(lang),
-        price=product.price,
+        price=price_text,
         description=product.get_description(lang),
         category_title=product.category.get_name(lang),
     )
@@ -139,7 +144,7 @@ def make_purchase_keyboard(user: BotUser, page):
         page=page,
     )
 
-    price_one = purchase.price
+    price_one = purchase.all_price
     buy_one_button = utils.make_inline_button(
         text=Messages.BUY_ONE.get(lang).format(price_one=price_one),
         CallType=CallTypes.PurchaseBuy,
@@ -151,6 +156,10 @@ def make_purchase_keyboard(user: BotUser, page):
         text=Messages.BUY_ALL.get(lang).format(price_all=price_all),
         CallType=CallTypes.PurchasesBuy,
     )
+    back_button = utils.make_inline_button(
+        text=Keys.BACK.get(lang),
+        CallType=CallTypes.Back,
+    )
 
     keyboard = types.InlineKeyboardMarkup(row_width=5)
     keyboard.add(*page_buttons)
@@ -158,6 +167,7 @@ def make_purchase_keyboard(user: BotUser, page):
     keyboard.add(remove_button)
     keyboard.add(buy_one_button)
     keyboard.add(buy_all_button)
+    keyboard.add(back_button)
     return keyboard
 
 
@@ -201,6 +211,7 @@ def purchase_page_call_handler(bot: telebot.TeleBot, call):
                 reply_markup=keyboard,
             )
         else:
+            bot.delete_message(chat_id, message_id=call.message.id)
             bot.send_photo(
                 chat_id=chat_id,
                 photo=photo,
@@ -245,12 +256,13 @@ def purchase_remove_call_handler(bot: telebot.TeleBot, call):
     purchase = purchases[page]
     purchase.delete()
 
+    bot.delete_message(chat_id=chat_id, message_id=call.message.id)
     call_type = CallTypes.PurchasePage(page=page)
     call.data = CallTypes.make_data(call_type)
     purchase_page_call_handler(bot, call)
 
 
-def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder):
+def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder, call):
     order = Order.orders.create(
         user=user,
         status=Order.Status.RESERVED,
@@ -283,6 +295,8 @@ def ordering_start(bot: telebot.TeleBot, user: BotUser, purchases, reorder):
             delivery_type=Order.DeliveryType.PAYMENT_DELIVERY,
         )
         keyboard.add(payment_delivery_button)
+    print(1)
+    bot.delete_message(chat_id, message_id=call.message.id)
     text = Messages.CHOOSE_DELIVERY_TYPE.get(lang)
     bot.send_message(chat_id, text,
                      reply_markup=keyboard)
@@ -299,7 +313,8 @@ def purchase_buy_call_handler(bot: telebot.TeleBot, call):
     purchases = shop_card.purchases.all()
     purchase = purchases[page]
     purchases = shop_card.purchases.filter(id=purchase.id)
-    ordering_start(bot, user, purchases, False)
+    print(123, call)
+    ordering_start(bot, user, purchases, False, call)
 
 
 def purchases_buy_call_handler(bot: telebot.TeleBot, call):
@@ -308,7 +323,7 @@ def purchases_buy_call_handler(bot: telebot.TeleBot, call):
 
     shop_card = user.shop_card
     purchases = shop_card.purchases.all()
-    ordering_start(bot, user, purchases, False)
+    ordering_start(bot, user, purchases, False, call)
 
 
 def delivery_type_call_handler(bot: telebot.TeleBot, call):
@@ -395,6 +410,21 @@ def self_call_keyboard(id, lang):
     keyboard.add(*button)
     return keyboard
 
+def self_call_handler(bot: telebot.TeleBot, call):
+    call_type = CallTypes.parse_data(call.data)
+    order_id = call_type.id
+    yes = call_type.yes
+    order = Order.orders.get(id=order_id)
+    user = order.user
+    # text = Messages.SELF_CALL_HANDLERS_TEXT.get(user.lang)
+    purchases = order.purchases.all()
+    purchases_info = get_purchases_info(purchases, user.lang)
+    if yes == 'yes':
+        text = Messages.COMPLATED_ORDER_TEXT.get(user.lang).format(order=purchases_info)
+        bot.send_message(chat_id=user.chat_id, text=text)
+    else:
+        text = Messages.CANCELED_ORDER_TEXT.get(user.lang).format(order=purchases_info)
+        bot.send_message(chat_id=user.chat_id, text=text)
 
 def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     order = user.orders.filter(status=Order.Status.RESERVED).first()
@@ -404,13 +434,13 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
     user.bot_state = None
     user.save()
 
-    text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(id=order.id)
+    purchases = order.purchases.all()
+    purchases_text = get_purchases_info(purchases, user.lang)
+    text = Messages.SUCCESFULL_ORDERING.get(user.lang).format(order=purchases_text)
     bot.send_message(chat_id=user.chat_id, text=text)
     commands.menu_command_handler(bot=bot, message=message)
     for admin in BotUser.admins.all():
         if order.delivery_type == Order.DeliveryType.PAYMENT_DELIVERY:
-            purchases = order.purchases.all()
-            text = get_purchases_info(purchases, user.lang)
             bot.send_location(
                 chat_id=admin.chat_id,
                 latitude=order.latitude,
@@ -422,7 +452,7 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
                 user=user,
                 contact=user.contact,
                 delivery_type=order.get_trans_status(user.lang),
-                text=text
+                text=purchases_text
             )
 
             bot.send_message(
@@ -438,13 +468,16 @@ def ordering_finish(bot: telebot.TeleBot, user, message, delivery_type):
                 user=user,
                 contact=user.contact,
                 delivery_type=order.get_trans_delivery_type(user.lang),
+                text=purchases_text
             )
-            bot.send_message(
-                chat_id=admin.chat_id,
+            bot.edit_message_text(
                 text=text,
+                chat_id=admin.chat_id,
+                message_id=message.id,
                 reply_markup=self_call_keyboard(order.id, user.lang)
             )
-            
+        
+
 def cook_keyboard(id, cook):
     button = [
         utils.make_inline_button(
@@ -469,69 +502,86 @@ def shop_card_yes_or_no(bot: telebot.TeleBot, call):
     chat_id = call.message.chat.id
     order = Order.orders.get(id=call_type.id)
     user= BotUser.objects.get(chat_id=chat_id)
-    if call_type.yes == 'yes':
-        order = Order.orders.get(id=call_type.id)
-        order.status = Order.Status.PROCESSED
-        order.save()
-        text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
-        bot.send_message(chat_id=chat_id, text=text)
-        commands.menu_command_handler(bot, call.message)
-        for cook in BotUser.objects.filter(type=BotUser.Type.COOK):
-                text = Messages.NEW_ORDER.get(cook.lang).format(
+    if order.status == Order.Status.IN_QUEUE:
+        if call_type.yes == 'yes':
+            order = Order.orders.get(id=call_type.id)
+            order.status = Order.Status.PROCESSED
+            order.save()
+            text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
+            bot.send_message(chat_id=chat_id, text=text)
+            commands.menu_command_handler(bot, call.message)
+            purchases = order.purchases.all()
+            for cook in BotUser.objects.filter(type=BotUser.Type.COOK):
+                order_info = get_purchases_info(purchases=purchases, lang=cook.lang)
+                text = Messages.COOK_NEW_ORDER.get(cook.lang).format(
                     id=call_type.id,
-                    uid=order.user.chat_id, 
-                    user=order.user, 
-                    contact=order.user.contact,
-                    delivery_type=order.get_trans_status(cook.lang),
-                    longitude=order.longitude,
-                    latitude=order.latitude, 
+                    purchases=order_info 
                 )
 
                 bot.send_message(chat_id=cook.chat_id, text=text, 
                                     reply_markup=cook_keyboard(call_type.id, cook))
 
+        else:
+            order = Order.orders.get(id=call_type.id)
+            order.status = order.get_trans_status(user.lang)
+            order.save()
+            text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
+            bot.delete_message(chat_id=chat_id, message_id=call.message.id-1)
+            bot.delete_message(chat_id=chat_id, message_id=call.message.id)
+            bot.send_message(chat_id=order.user.chat_id, text=text)
+            commands.menu_command_handler(bot, call.message)
     else:
-        order = Order.orders.get(id=call_type.id)
-        order.status = order.get_trans_status(user.lang)
-        order.save()
-        text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
-        bot.delete_message(chat_id=chat_id, message_id=call.message.id-1)
-        bot.delete_message(chat_id=chat_id, message_id=call.message.id)
-        bot.send_message(chat_id=order.user.chat_id, text=text)
-        commands.menu_command_handler(bot, call.message)
-        
-         
+            text = Messages.ADMIN_ACCEPTED_MESSAGE.get(user.lang)
+            bot.answer_callback_query(callback_query_id=call.id, text=text, show_alert=True)
+
+def driver_keyboard(id, driver):
+    button = [
+        utils.make_inline_button(
+            text=Keys.YES.get(driver.lang),
+            CallType=CallTypes.ShopCardDriver,
+            id=id,
+        )
+    ]
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*button)
+    return keyboard
+
 def shopcard_cook_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
     chat_id = call.message.chat.id
     order = Order.orders.get(id=call_type.id)
     user= BotUser.objects.get(chat_id=chat_id)
     print(call_type)
-    if call_type.yes == 'yes':
-        order = Order.orders.get(id=call_type.id)
-        order.status = Order.Status.COMPLETED
-        order.save()
-        text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
-        bot.send_message(chat_id=chat_id, text=text)
-        commands.menu_command_handler(bot, call.message)
-        for driver in BotUser.objects.filter(type=BotUser.Type.DRIVER):
-                text = Messages.NEW_ORDER.get(driver.lang).format(
-                    id=call_type.id,
-                    uid=order.user.chat_id, 
-                    user=order.user, 
-                    contact=order.user.contact,
-                    delivery_type=order.get_trans_status(driver.lang),
-                    longitude=order.longitude,
-                    latitude=order.latitude, 
-                )
+    if order.status == Order.Status.PROCESSED:
+        if call_type.yes == 'yes':
+            order = Order.orders.get(id=call_type.id)
+            order.status = Order.Status.DELIVERING
+            order.save()
+            text = Messages.SEND_COOK_AND_DRIVER.get(user.lang).format(id=call_type.id)
+            bot.send_message(chat_id=chat_id, text=text)
+            commands.menu_command_handler(bot, call.message)
+            purchases = order.purchases.all()
+            for driver in BotUser.objects.filter(type=BotUser.Type.DRIVER):
+                    order_info = get_purchases_info(purchases=purchases, lang=driver.lang)
+                    text = Messages.DRIVER_NEW_ORDER.get(driver.lang).format(
+                        id=call_type.id,
+                        uid=order.user.chat_id, 
+                        user=order.user, 
+                        contact=order.user.contact,
+                        delivery_type=order.get_trans_status(driver.lang),
+                        purchases=order_info
+                        
+                    )
 
-                bot.send_message(chat_id=driver.chat_id, text=text, )
-                                    # reply_markup=cook_keyboard(call_type.id, cook))
-                
-                bot.send_location(chat_id=driver.chat_id, latitude=order.latitude,
-                                        longitude=order.longitude)
+                    bot.send_message(chat_id=driver.chat_id, text=text, reply_markup=driver_keyboard(call_type.id, driver))
+                                        # reply_markup=cook_keyboard(call_type.id, cook))
+                    
+                    bot.send_location(chat_id=driver.chat_id, latitude=order.latitude,
+                                            longitude=order.longitude)
+        else:
+            text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
+            bot.send_message(chat_id=order.user.chat_id, text=text)
+            commands.menu_command_handler(bot, call.message)
     else:
-        text = Messages.NOT_ACCEPTED_ORDER.get(order.user.lang).format(id=call_type.id)
-        bot.send_message(chat_id=order.user.chat_id, text=text)
-        commands.menu_command_handler(bot, call.message)
-         
+            text = Messages.ADMIN_ACCEPTED_MESSAGE.get(user.lang)
+            bot.answer_callback_query(callback_query_id=call.id, text=text, show_alert=True)

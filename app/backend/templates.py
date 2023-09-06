@@ -43,6 +43,7 @@ class Keys():
     OFF = keys[33]
     COOK = keys[34]
     DRIVER = keys[35]
+    ADD_TO_PRODUCT = keys[36]
 
 
 class Messages():
@@ -100,6 +101,13 @@ class Messages():
     STATICS_MESSAGE = messages[51]
     SELF_CALL = messages[52]
     PAYMENT_DELIVERY = messages[53]
+    COMPLATED_ORDER_TEXT = messages[54]
+    CANCELED_ORDER_TEXT = messages[55]
+    DRIVER_NEW_ORDER = messages[56]
+    COOK_NEW_ORDER = messages[57]
+    ADMIN_ACCEPTED_MESSAGE = messages[58]
+    DELIVERING = messages[59]
+    PRICE_TEXT = messages[60]
 
 
 class Smiles():

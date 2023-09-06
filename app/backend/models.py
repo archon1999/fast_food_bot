@@ -75,7 +75,7 @@ class BotUser(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-
+    full_register = models.BooleanField(default=False)
     class Meta:
         verbose_name = 'Foydalanuvchi'
         verbose_name_plural = verbose_name + 'lar'
@@ -151,17 +151,31 @@ class Product(models.Model):
     def __str__(self):
         return self.title_uz
 
+class Prices(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    title_uz = models.CharField(max_length=100, verbose_name='Nomi')
+    title_ru = models.CharField(max_length=100, verbose_name='Название')
+    title_en = models.CharField(max_length=100, verbose_name='Title')
+    price = models.IntegerField()
+
+    def get(self, lang):
+        return getattr(self, f'title_{lang}')
+
+    def __str__(self):
+        return self.title_uz
+    
 
 class Purchase(models.Model):
     purchases = models.Manager()
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
+    price = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     @property
-    def price(self):
-        return self.product.price * self.count
+    def all_price(self):
+        return self.price * self.count
 
     def __str__(self):
         return str(self.product)
@@ -250,7 +264,7 @@ class ShopCard(models.Model):
     @property
     def price(self):
         price = self.purchases.aggregate(
-            price_all=Sum(F('product__price')*F('count'))
+            price_all=Sum(F('price')*F('count'))
         )['price_all']
         if not price:
             price = 0
@@ -285,6 +299,7 @@ class Order(models.Model):
         RESERVED = 'Reserved'
         IN_QUEUE = 'In queue'
         PROCESSED = 'Processed'
+        PREPARING = 'Preparing'
         COMPLETED = 'Completed'
         CANCELED = 'Canceled'
 
@@ -312,6 +327,7 @@ class Order(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
     purchases = models.ManyToManyField(Purchase)
+    approved = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

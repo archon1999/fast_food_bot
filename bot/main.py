@@ -63,7 +63,7 @@ def message_handler(message):
 
             elif state == States.PROFILE_EDIT_CONTACT:
                 if (message.text[:5] == '+9989') or (message.text[:4] == '9989'):
-                    user.bot_state = ''
+                    user.bot_state = None
                     user.save()
                     profile.profile_edit_contact_number(bot, message, user)
                 else:
@@ -91,7 +91,7 @@ callback_query_handlers = {
     CallTypes.Products: products.products_call_handler,
     CallTypes.Category: products.category_call_handler,
     CallTypes.ProductPage: products.product_page_call_handler,
-    CallTypes.AddToShopCard: products.add_to_shop_card_call_handler,
+    CallTypes.PricesProduct: products.add_to_shop_card_call_handler,
     CallTypes.AllProducts: products.all_products_call_handler,
 
     CallTypes.ShopCard: shopcard.shop_card_call_handler,
@@ -102,6 +102,7 @@ callback_query_handlers = {
     CallTypes.PurchasesBuy: shopcard.purchases_buy_call_handler,
     CallTypes.ShopCardYes: shopcard.shop_card_yes_or_no,
     CallTypes.ShopCardCookYes: shopcard.shopcard_cook_call_handler,
+    CallTypes.SELFCALL: shopcard.self_call_handler,
 
     CallTypes.Profile: profile.profile_call_handler,
     CallTypes.ProfileEdit: profile.profile_edit_call_handler,
@@ -163,6 +164,7 @@ def contact_handler(message):
 
         user.contact = message.contact.phone_number
         user.bot_state = None
+        user.full_register = True
         user.save()
         lang = user.lang
 
@@ -179,7 +181,7 @@ def contact_handler(message):
 def location_handler(message):
     chat_id = message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
-
+    
     if user.bot_state == States.SEND_LOCATION:
         longitude = message.location.longitude
         latitude = message.location.latitude

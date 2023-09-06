@@ -9,36 +9,39 @@ from bot.states import States
 
 from backend.models import BotUser, ShopCard
 from backend.templates import Messages, Keys
-
+from products import make_subcategory_buttons
 
 def start_command_handler(bot: telebot.TeleBot, message):
     chat_id = message.chat.id
     keyboard = types.InlineKeyboardMarkup()
+    # user = BotUser.objects.get(chat_id=chat_id)
+    
+    if BotUser.objects.filter(chat_id=chat_id).exists():
+        menu_command_handler(bot, message)
+    else:
+        uz_language_button = utils.make_inline_button(
+            text=Keys.LANGUAGE.get(BotUser.Lang.UZ),
+            CallType=CallTypes.Language,
+            lang=BotUser.Lang.UZ,
+        )
+        ru_language_button = utils.make_inline_button(
+            text=Keys.LANGUAGE.get(BotUser.Lang.RU),
+            CallType=CallTypes.Language,
+            lang=BotUser.Lang.RU,
+        )
+        en_language_button = utils.make_inline_button(
+            text=Keys.LANGUAGE.get(BotUser.Lang.EN),
+            CallType=CallTypes.Language,
+            lang=BotUser.Lang.EN,
+        )
 
-    uz_language_button = utils.make_inline_button(
-        text=Keys.LANGUAGE.get(BotUser.Lang.UZ),
-        CallType=CallTypes.Language,
-        lang=BotUser.Lang.UZ,
-    )
-    ru_language_button = utils.make_inline_button(
-        text=Keys.LANGUAGE.get(BotUser.Lang.RU),
-        CallType=CallTypes.Language,
-        lang=BotUser.Lang.RU,
-    )
-    en_language_button = utils.make_inline_button(
-        text=Keys.LANGUAGE.get(BotUser.Lang.EN),
-        CallType=CallTypes.Language,
-        lang=BotUser.Lang.EN,
-    )
+        keyboard.add(uz_language_button)
+        keyboard.add(ru_language_button)
+        keyboard.add(en_language_button)
 
-    keyboard.add(uz_language_button)
-    keyboard.add(ru_language_button)
-    keyboard.add(en_language_button)
-
-    text = Messages.START_COMMAND_HANDLER.text
-    bot.send_message(chat_id, text,
-                     reply_markup=keyboard)
-
+        text = Messages.START_COMMAND_HANDLER.text
+        bot.send_message(chat_id, text,
+                        reply_markup=keyboard)
 
 def language_call_handler(bot: telebot.TeleBot, call):
     call_type = CallTypes.parse_data(call.data)
@@ -76,10 +79,10 @@ def menu_command_handler(bot: telebot.TeleBot, message):
     chat_id = message.chat.id
     user = BotUser.objects.get(chat_id=chat_id)
     lang = user.lang
-    products_button = utils.make_inline_button(
-        text=Keys.PRODUCTS.get(lang),
-        CallType=CallTypes.Products,
-    )
+    # products_button = utils.make_inline_button(
+    #     text=Keys.PRODUCTS.get(lang),
+    #     CallType=CallTypes.Products,
+    # )
     shop_card_button = utils.make_inline_button(
         text=Keys.SHOP_CARD.get(lang),
         CallType=CallTypes.ShopCard,
@@ -89,18 +92,18 @@ def menu_command_handler(bot: telebot.TeleBot, message):
         CallType=CallTypes.Orders,
         page=1,
     )
-    profile_button = utils.make_inline_button(
-        text=Keys.PROFILE.get(lang),
-        CallType=CallTypes.Profile,
-    )
+    # profile_button = utils.make_inline_button(
+    #     text=Keys.PROFILE.get(lang),
+    #     CallType=CallTypes.Profile,
+    # )
     info_button = utils.make_inline_button(
         text=Keys.INFO.get(lang),
         CallType=CallTypes.Info,
     )
-
-    menu_keyboard = types.InlineKeyboardMarkup()
-    menu_keyboard.add(products_button, shop_card_button)
-    menu_keyboard.add(orders_button, profile_button)
+    buttons = make_subcategory_buttons(None, lang)
+    menu_keyboard = types.InlineKeyboardMarkup(row_width=2)
+    menu_keyboard.add(*buttons)
+    menu_keyboard.add(orders_button, shop_card_button)
     menu_keyboard.add(info_button)
     if user.type == BotUser.Type.ADMIN:
         admin_button = utils.make_inline_button(

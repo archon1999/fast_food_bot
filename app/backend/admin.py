@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from backend.models import (AboutShop, BotUser, Category, Order, Product,
-                            Purchase, Review, ShopCard, Template, AdminPanel)
+                            Purchase, Review, ShopCard, Template, AdminPanel, Prices)
 
 
 @admin.register(BotUser)
@@ -17,11 +17,15 @@ class CategoryAdmin(admin.ModelAdmin):
 class AboutBotAdmin(admin.ModelAdmin):
     list_display = ['cook', 'driver']
 
+class PricesInline(admin.TabularInline):
+    model = Prices
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    inlines = [PricesInline]
     list_display = ['id', 'title_uz', 'description_uz', 'price', 'category']
 
-
+ 
 @admin.register(Review)
 class ReviwAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'rating']
@@ -39,7 +43,7 @@ class PurchaseAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'status', 'created']
+    list_display = ['id', 'user', 'status', 'created', 'approved']
 
 
 @admin.register(AboutShop)

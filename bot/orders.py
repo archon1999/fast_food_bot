@@ -128,4 +128,4 @@ def reorder_call_handler(bot: telebot.TeleBot, call):
     order = Order.orders.get(id=order_id)
     purchases = order.purchases.all().reverse()
 
-    ordering_start(bot, user, purchases, True)
+    ordering_start(bot, user, purchases, True, call)
